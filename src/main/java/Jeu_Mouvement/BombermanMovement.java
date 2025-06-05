@@ -100,19 +100,35 @@ public class BombermanMovement implements KeyListener {
 
     private int[] getPlayerPosition(int playerId) {
         switch (playerId) {
-            case 1: return player1Pos;
-            case 2: return player2Pos;
-            case 3: return player3Pos;
-            case 4: return player4Pos;
-            default: throw new IllegalArgumentException("ID joueur invalide: " + playerId);
+            case 1:
+                return player1Pos;
+            case 2:
+                return player2Pos;
+            case 3:
+                return player3Pos;
+            case 4:
+                return player4Pos;
+            default:
+                throw new IllegalArgumentException("ID joueur invalide: " + playerId);
         }
     }
 
     // Getters pour les positions des joueurs
-    public int[] getPlayer1Position() { return player1Pos.clone(); }
-    public int[] getPlayer2Position() { return player2Pos.clone(); }
-    public int[] getPlayer3Position() { return player3Pos.clone(); }
-    public int[] getPlayer4Position() { return player4Pos.clone(); }
+    public int[] getPlayer1Position() {
+        return player1Pos.clone();
+    }
+
+    public int[] getPlayer2Position() {
+        return player2Pos.clone();
+    }
+
+    public int[] getPlayer3Position() {
+        return player3Pos.clone();
+    }
+
+    public int[] getPlayer4Position() {
+        return player4Pos.clone();
+    }
 
     // Setters pour les positions initiales
     public void setPlayerPosition(int playerId, int x, int y) {
@@ -143,40 +159,41 @@ public class BombermanMovement implements KeyListener {
     }
 
     // Classe interne pour stocker les contrôles d'un joueur
-    private static class PlayerControls {
+    public static class PlayerControls {
         final int left, down, up, right;
 
-        PlayerControls(int left, int down, int up, int right) {
+        public PlayerControls(int left, int down, int up, int right) {
             this.left = left;
             this.down = down;
             this.up = up;
             this.right = right;
         }
-    }
 
-    // Méthode de test
-    public static void main(String[] args) {
-        BombermanMovement movement = new BombermanMovement();
 
-        System.out.println("=== Test des déplacements Bomberman ===");
-        System.out.println("Contrôles:");
-        System.out.println("Joueur 1: Q(gauche), S(bas), Z(haut), D(droite)");
-        System.out.println("Joueur 2: ←(gauche), ↓(bas), ↑(haut), →(droite)");
-        System.out.println("Joueur 3: G(gauche), H(bas), Y(haut), J(droite)");
-        System.out.println("Joueur 4: O(gauche), K(bas), L(haut), M(droite)");
-        System.out.println();
+        // Méthode de test
+        public static void main(String[] args) {
+            BombermanMovement movement = new BombermanMovement();
 
-        movement.printAllPositions();
+            System.out.println("=== Test des déplacements Bomberman ===");
+            System.out.println("Contrôles:");
+            System.out.println("Joueur 1: Q(gauche), S(bas), Z(haut), D(droite)");
+            System.out.println("Joueur 2: ←(gauche), ↓(bas), ↑(haut), →(droite)");
+            System.out.println("Joueur 3: G(gauche), H(bas), Y(haut), J(droite)");
+            System.out.println("Joueur 4: O(gauche), K(bas), L(haut), M(droite)");
+            System.out.println();
 
-        // Simulation de quelques mouvements
-        KeyEvent testEvent1 = new KeyEvent(new java.awt.Button(), KeyEvent.KEY_PRESSED,
-                System.currentTimeMillis(), 0, KeyEvent.VK_D, 'D');
-        movement.keyPressed(testEvent1);
+            movement.printAllPositions();
 
-        KeyEvent testEvent2 = new KeyEvent(new java.awt.Button(), KeyEvent.KEY_PRESSED,
-                System.currentTimeMillis(), 0, KeyEvent.VK_RIGHT, KeyEvent.CHAR_UNDEFINED);
-        movement.keyPressed(testEvent2);
+            // Simulation de quelques mouvements
+            KeyEvent testEvent1 = new KeyEvent(new java.awt.Button(), KeyEvent.KEY_PRESSED,
+                    System.currentTimeMillis(), 0, KeyEvent.VK_D, 'D');
+            movement.keyPressed(testEvent1);
 
-        movement.printAllPositions();
+            KeyEvent testEvent2 = new KeyEvent(new java.awt.Button(), KeyEvent.KEY_PRESSED,
+                    System.currentTimeMillis(), 0, KeyEvent.VK_RIGHT, KeyEvent.CHAR_UNDEFINED);
+            movement.keyPressed(testEvent2);
+
+            movement.printAllPositions();
+        }
     }
 }
