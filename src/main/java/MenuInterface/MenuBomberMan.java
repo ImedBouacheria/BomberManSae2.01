@@ -5,10 +5,7 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.InnerShadow;
 import javafx.scene.layout.*;
@@ -19,6 +16,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -36,13 +34,20 @@ public class MenuBomberMan extends Application {
     private Random random = new Random();
     private Timeline particleTimeline;
     private Timeline backgroundTimeline;
+    private Stage primaryStage;
 
     @Override
     public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+
         // Configuration de la fenêtre principale
         primaryStage.setTitle("BOMBERMAN - Menu Principal");
         primaryStage.setResizable(false);
 
+        showMainMenu();
+    }
+
+    private void showMainMenu() {
         // Création du conteneur principal avec fond pixelisé
         StackPane root = new StackPane();
         root.setPrefSize(1000, 700);
@@ -104,6 +109,240 @@ public class MenuBomberMan extends Application {
             if (particleTimeline != null) particleTimeline.stop();
             if (backgroundTimeline != null) backgroundTimeline.stop();
         });
+    }
+
+    private void showSettingsPage() {
+        // Arrêter les animations actuelles
+        if (particleTimeline != null) particleTimeline.stop();
+        if (backgroundTimeline != null) backgroundTimeline.stop();
+
+        // Création du conteneur principal pour les paramètres
+        StackPane root = new StackPane();
+        root.setPrefSize(1000, 700);
+
+        // Fond dégradé pour les paramètres
+        LinearGradient backgroundGradient = new LinearGradient(
+                0, 0, 1, 1, true, null,
+                new Stop(0, Color.web("#2E0080")),
+                new Stop(0.5, Color.web("#4B0080")),
+                new Stop(1, Color.web("#6A0080"))
+        );
+        root.setBackground(new Background(new BackgroundFill(backgroundGradient, null, null)));
+
+        // Conteneur principal
+        VBox mainContainer = new VBox(40);
+        mainContainer.setAlignment(Pos.CENTER);
+        mainContainer.setPadding(new Insets(50));
+
+        // Titre de la page paramètres
+        Label title = new Label(">>> PARAMETRES <<<");
+        title.setFont(Font.font("Monospace", FontWeight.BOLD, 48));
+        title.setTextFill(Color.WHITE);
+
+        DropShadow titleShadow = new DropShadow();
+        titleShadow.setColor(Color.BLACK);
+        titleShadow.setOffsetX(4);
+        titleShadow.setOffsetY(4);
+        titleShadow.setRadius(0);
+        title.setEffect(titleShadow);
+
+        // Container pour les contrôles
+        VBox controlsContainer = new VBox(30);
+        controlsContainer.setAlignment(Pos.CENTER);
+        controlsContainer.setPadding(new Insets(40));
+
+        // Fond pixelisé pour le container des contrôles
+        controlsContainer.setBackground(new Background(new BackgroundFill(
+                Color.rgb(0, 0, 0, 0.8),
+                new CornerRadii(0),
+                null
+        )));
+        controlsContainer.setBorder(new Border(new BorderStroke(
+                Color.WHITE,
+                BorderStrokeStyle.SOLID,
+                new CornerRadii(0),
+                new BorderWidths(6)
+        )));
+
+        // Titre des contrôles
+        Label controlsTitle = new Label("CONTROLES DES JOUEURS");
+        controlsTitle.setFont(Font.font("Monospace", FontWeight.BOLD, 24));
+        controlsTitle.setTextFill(Color.YELLOW);
+        controlsTitle.setTextAlignment(TextAlignment.CENTER);
+
+        DropShadow controlsTitleShadow = new DropShadow();
+        controlsTitleShadow.setColor(Color.BLACK);
+        controlsTitleShadow.setOffsetX(2);
+        controlsTitleShadow.setOffsetY(2);
+        controlsTitleShadow.setRadius(0);
+        controlsTitle.setEffect(controlsTitleShadow);
+
+        // Grille des contrôles des joueurs
+        GridPane controlsGrid = new GridPane();
+        controlsGrid.setHgap(50);
+        controlsGrid.setVgap(25);
+        controlsGrid.setAlignment(Pos.CENTER);
+
+        // Joueur 1
+        VBox player1Box = createPlayerControlBox("JOUEUR 1", "Z Q S D", Color.web("#FF4444"));
+        controlsGrid.add(player1Box, 0, 0);
+
+        // Joueur 2
+        VBox player2Box = createPlayerControlBox("JOUEUR 2", "↑ ↓ → ←", Color.web("#44FF44"));
+        controlsGrid.add(player2Box, 1, 0);
+
+        // Joueur 3
+        VBox player3Box = createPlayerControlBox("JOUEUR 3", "Y G H J", Color.web("#4444FF"));
+        controlsGrid.add(player3Box, 0, 1);
+
+        // Joueur 4
+        VBox player4Box = createPlayerControlBox("JOUEUR 4", "O K L M", Color.web("#FFFF44"));
+        controlsGrid.add(player4Box, 1, 1);
+
+        // Bouton retour
+        Button backButton = createRetroBackButton();
+
+        // Assemblage
+        controlsContainer.getChildren().addAll(controlsTitle, controlsGrid);
+        mainContainer.getChildren().addAll(title, controlsContainer, backButton);
+        root.getChildren().add(mainContainer);
+
+        // Affichage de la scène
+        Scene settingsScene = new Scene(root);
+        primaryStage.setScene(settingsScene);
+
+        // Animation du titre
+        startSettingsTitleAnimation(title);
+    }
+
+    private VBox createPlayerControlBox(String playerName, String controls, Color playerColor) {
+        VBox playerBox = new VBox(15);
+        playerBox.setAlignment(Pos.CENTER);
+        playerBox.setPadding(new Insets(20));
+        playerBox.setPrefSize(200, 120);
+
+        // Fond du joueur
+        playerBox.setBackground(new Background(new BackgroundFill(
+                Color.rgb(0, 0, 0, 0.6),
+                new CornerRadii(0),
+                null
+        )));
+        playerBox.setBorder(new Border(new BorderStroke(
+                playerColor,
+                BorderStrokeStyle.SOLID,
+                new CornerRadii(0),
+                new BorderWidths(4)
+        )));
+
+        // Effet d'ombre
+        DropShadow boxShadow = new DropShadow();
+        boxShadow.setColor(Color.BLACK);
+        boxShadow.setOffsetX(3);
+        boxShadow.setOffsetY(3);
+        boxShadow.setRadius(0);
+        playerBox.setEffect(boxShadow);
+
+        // Nom du joueur
+        Label nameLabel = new Label(playerName);
+        nameLabel.setFont(Font.font("Monospace", FontWeight.BOLD, 16));
+        nameLabel.setTextFill(playerColor);
+
+        // Séparateur
+        Rectangle separator = new Rectangle(150, 2);
+        separator.setFill(playerColor);
+
+        // Contrôles
+        Label controlsLabel = new Label(controls);
+        controlsLabel.setFont(Font.font("Monospace", FontWeight.BOLD, 18));
+        controlsLabel.setTextFill(Color.WHITE);
+        controlsLabel.setTextAlignment(TextAlignment.CENTER);
+
+        playerBox.getChildren().addAll(nameLabel, separator, controlsLabel);
+
+        // Animation de clignotement au survol
+        playerBox.setOnMouseEntered(e -> {
+            Timeline blink = new Timeline(
+                    new KeyFrame(Duration.millis(0), new KeyValue(playerBox.opacityProperty(), 1.0)),
+                    new KeyFrame(Duration.millis(200), new KeyValue(playerBox.opacityProperty(), 0.7)),
+                    new KeyFrame(Duration.millis(400), new KeyValue(playerBox.opacityProperty(), 1.0))
+            );
+            blink.play();
+        });
+
+        return playerBox;
+    }
+
+    private Button createRetroBackButton() {
+        Button backButton = new Button(">>> RETOUR AU MENU <<<");
+        backButton.setPrefSize(300, 60);
+        backButton.setFont(Font.font("Monospace", FontWeight.BOLD, 16));
+        backButton.setTextFill(Color.WHITE);
+
+        // Style rétro
+        backButton.setBackground(new Background(new BackgroundFill(
+                Color.web("#AA0000"),
+                new CornerRadii(0),
+                null
+        )));
+        backButton.setBorder(new Border(new BorderStroke(
+                Color.WHITE,
+                BorderStrokeStyle.SOLID,
+                new CornerRadii(0),
+                new BorderWidths(4)
+        )));
+
+        // Effet d'ombre
+        DropShadow buttonShadow = new DropShadow();
+        buttonShadow.setColor(Color.BLACK);
+        buttonShadow.setOffsetX(4);
+        buttonShadow.setOffsetY(4);
+        buttonShadow.setRadius(0);
+        backButton.setEffect(buttonShadow);
+
+        // Effets de survol
+        backButton.setOnMouseEntered(e -> {
+            backButton.setBackground(new Background(new BackgroundFill(
+                    Color.web("#FF0000"),
+                    new CornerRadii(0),
+                    null
+            )));
+
+            // Animation de pulsation
+            Timeline pulse = new Timeline(
+                    new KeyFrame(Duration.millis(0), new KeyValue(backButton.scaleXProperty(), 1.0)),
+                    new KeyFrame(Duration.millis(100), new KeyValue(backButton.scaleXProperty(), 1.05)),
+                    new KeyFrame(Duration.millis(200), new KeyValue(backButton.scaleXProperty(), 1.0))
+            );
+            pulse.play();
+        });
+
+        backButton.setOnMouseExited(e -> {
+            backButton.setBackground(new Background(new BackgroundFill(
+                    Color.web("#AA0000"),
+                    new CornerRadii(0),
+                    null
+            )));
+        });
+
+        backButton.setOnAction(e -> {
+            // Retour au menu principal
+            showMainMenu();
+        });
+
+        return backButton;
+    }
+
+    private void startSettingsTitleAnimation(Label title) {
+        // Animation de changement de couleur pour le titre des paramètres
+        Timeline titleAnimation = new Timeline(
+                new KeyFrame(Duration.millis(0), new KeyValue(title.textFillProperty(), Color.WHITE)),
+                new KeyFrame(Duration.millis(800), new KeyValue(title.textFillProperty(), Color.CYAN)),
+                new KeyFrame(Duration.millis(1600), new KeyValue(title.textFillProperty(), Color.WHITE)),
+                new KeyFrame(Duration.millis(2400), new KeyValue(title.textFillProperty(), Color.MAGENTA)),
+                new KeyFrame(Duration.millis(3200), new KeyValue(title.textFillProperty(), Color.WHITE))
+        );
+        titleAnimation.setCycleCount(Timeline.INDEFINITE);
+        titleAnimation.play();
     }
 
     private void createPixelatedBackground() {
@@ -455,26 +694,143 @@ public class MenuBomberMan extends Application {
     private void launchEditorMode() {
         showRetroAlert("EDITEUR", ">>> EDITEUR DE NIVEAU <<<\n\nOUVERTURE DES OUTILS...", Alert.AlertType.INFORMATION);
     }
+    private void showProfilePage() {
+        // Arrêter les animations actuelles
+        if (particleTimeline != null) particleTimeline.stop();
+        if (backgroundTimeline != null) backgroundTimeline.stop();
 
+        // Création du conteneur principal
+        StackPane root = new StackPane();
+        root.setPrefSize(1000, 700);
+
+        // Fond dégradé rétro
+        LinearGradient backgroundGradient = new LinearGradient(
+                0, 0, 1, 1, true, null,
+                new Stop(0, Color.web("#4B0082")),
+                new Stop(1, Color.web("#800080"))
+        );
+        root.setBackground(new Background(new BackgroundFill(backgroundGradient, null, null)));
+
+        // Conteneur principal
+        VBox mainContainer = new VBox(40);
+        mainContainer.setAlignment(Pos.CENTER);
+        mainContainer.setPadding(new Insets(50));
+
+        // Titre
+        Label title = new Label(">>> PROFIL <<<");
+        title.setFont(Font.font("Monospace", FontWeight.BOLD, 48));
+        title.setTextFill(Color.WHITE);
+
+        // Conteneur du formulaire
+        VBox formContainer = new VBox(20);
+        formContainer.setAlignment(Pos.CENTER);
+        formContainer.setPadding(new Insets(30));
+        formContainer.setMaxWidth(400);
+        formContainer.setStyle("-fx-background-color: rgba(0,0,0,0.8); -fx-border-color: white; -fx-border-width: 4;");
+
+        // Champs du formulaire
+        TextField nomField = createRetroTextField("Nom");
+        TextField prenomField = createRetroTextField("Prénom");
+
+        // ComboBox pour la couleur du sprite
+        ComboBox<String> colorComboBox = new ComboBox<>();
+        colorComboBox.getItems().addAll("Rose", "Orange", "Bleu", "Vert");
+        colorComboBox.setPromptText("Couleur du sprite");
+        styleRetroComboBox(colorComboBox);
+
+        // Bouton de sauvegarde
+        Button saveButton = new Button("SAUVEGARDER");
+        styleRetroButton(saveButton, Color.GREEN);
+        saveButton.setOnAction(e -> {
+            showRetroAlert("SAUVEGARDE",
+                    "Profil sauvegardé :\nNom: " + nomField.getText() +
+                            "\nPrénom: " + prenomField.getText() +
+                            "\nCouleur: " + colorComboBox.getValue(),
+                    Alert.AlertType.INFORMATION);
+        });
+
+        // Bouton retour
+        Button backButton = createRetroBackButton();
+
+        // Assemblage
+        formContainer.getChildren().addAll(
+                createRetroLabel("NOM:"), nomField,
+                createRetroLabel("PRÉNOM:"), prenomField,
+                createRetroLabel("COULEUR DU SPRITE:"), colorComboBox,
+                new Region(), saveButton
+        );
+
+        mainContainer.getChildren().addAll(title, formContainer, backButton);
+        root.getChildren().add(mainContainer);
+
+        Scene profileScene = new Scene(root);
+        primaryStage.setScene(profileScene);
+    }
+
+    private TextField createRetroTextField(String promptText) {
+        TextField field = new TextField();
+        field.setPromptText(promptText);
+        field.setPrefHeight(40);
+        field.setFont(Font.font("Monospace", FontWeight.BOLD, 14));
+        field.setStyle(
+                "-fx-background-color: black;" +
+                        "-fx-text-fill: #00ff00;" +
+                        "-fx-border-color: white;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-prompt-text-fill: #888888;"
+        );
+        return field;
+    }
+
+    private Label createRetroLabel(String text) {
+        Label label = new Label(text);
+        label.setFont(Font.font("Monospace", FontWeight.BOLD, 14));
+        label.setTextFill(Color.WHITE);
+        return label;
+    }
+
+    private void styleRetroComboBox(ComboBox<String> comboBox) {
+        comboBox.setPrefHeight(40);
+        comboBox.setStyle(
+                "-fx-background-color: black;" +
+                        "-fx-text-fill: #00ff00;" +
+                        "-fx-border-color: white;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-font-family: 'Monospace';" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-font-size: 14px;"
+        );
+    }
+
+    private void styleRetroButton(Button button, Color baseColor) {
+        button.setPrefSize(200, 40);
+        button.setFont(Font.font("Monospace", FontWeight.BOLD, 14));
+        button.setTextFill(Color.WHITE);
+        button.setStyle(
+                "-fx-background-color: " + toRGBCode(baseColor) + ";" +
+                        "-fx-border-color: white;" +
+                        "-fx-border-width: 2;"
+        );
+    }
+
+    private String toRGBCode(Color color) {
+        return String.format("#%02X%02X%02X",
+                (int) (color.getRed() * 255),
+                (int) (color.getGreen() * 255),
+                (int) (color.getBlue() * 255));
+    }
     private void openProfile() {
-        showRetroAlert("PROFIL", ">>> DONNEES UTILISATEUR <<<\n\nACCES AU PROFIL...", Alert.AlertType.INFORMATION);
+        showProfilePage();
     }
 
     private void openSettings() {
-        showRetroAlert("PARAMETRES", ">>> CONFIGURATION SYSTEME <<<\n\nCHARGEMENT DES OPTIONS...", Alert.AlertType.INFORMATION);
+        // Maintenant on affiche la vraie page de paramètres
+        showSettingsPage();
     }
 
     private void quitGame() {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle(">>> FERMETURE DU SYSTEME <<<");
-        alert.setHeaderText("CONFIRMATION REQUISE");
-        alert.setContentText("VOULEZ-VOUS VRAIMENT QUITTER LE JEU ?\n\n[OUI] / [NON]");
-
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            System.out.println(">>> ARRET DU SYSTEME <<<");
-            System.exit(0);
-        }
+        System.out.println(">>> ARRET DU SYSTEME <<<");
+        System.exit(0);
     }
 
     private void showRetroAlert(String title, String message, Alert.AlertType type) {
