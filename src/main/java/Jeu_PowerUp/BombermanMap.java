@@ -1,4 +1,4 @@
-package com.example.bombermansae201;
+package Jeu_PowerUp;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -10,7 +10,6 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
 import javafx.geometry.Pos;
-import javafx.animation.AnimationTimer;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 import javafx.util.Duration;
