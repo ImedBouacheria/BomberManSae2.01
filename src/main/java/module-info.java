@@ -8,4 +8,6 @@ module com.example.bombermansae201 {
 
     opens com.example.bombermansae201 to javafx.fxml;
     exports com.example.bombermansae201;
+    exports MenuInterface;
+    opens MenuInterface to javafx.fxml;
 }
