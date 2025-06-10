@@ -1,19 +1,15 @@
 package com.example.bombermansae201;
 
-import javafx.animation.AnimationTimer;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import javafx.animation.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
@@ -22,6 +18,8 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Blend;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
@@ -870,6 +868,9 @@ public class GameController {
         }
     }
 
+    /**
+     * Version modifiée de endGame pour afficher l'écran de victoire
+     */
     private void endGame(JavaFXPlayer winner) {
         currentState = GameState.GAME_OVER;
 
@@ -885,14 +886,235 @@ public class GameController {
         // Mettre à jour les statistiques des profils
         updateProfileStats(winner);
 
-        // Retour au menu après 5 secondes
-        Timeline returnToMenu = new Timeline(
-                new KeyFrame(Duration.seconds(5), e -> {
-                    System.out.println("Retour au menu automatique");
-                    application.showMenu();
-                })
+        // Afficher l'écran de victoire au lieu de retourner directement au menu
+        showVictoryScreen(winner);
+    }
+
+    /**
+     * Affiche l'écran de victoire avec les options de rejouer ou retourner au menu
+     */
+    private void showVictoryScreen(JavaFXPlayer winner) {
+        // Créer la scène de victoire
+        StackPane victoryRoot = new StackPane();
+        victoryRoot.setPrefSize(1200, 700);
+
+        // Fond dégradé festif
+        String backgroundStyle = winner != null ?
+                "-fx-background-color: linear-gradient(to bottom, #FFD700, #FFA500, #FF6347);" :
+                "-fx-background-color: linear-gradient(to bottom, #696969, #808080, #A9A9A9);";
+        victoryRoot.setStyle(backgroundStyle);
+
+        // Conteneur principal
+        VBox mainContainer = new VBox(40);
+        mainContainer.setAlignment(Pos.CENTER);
+        mainContainer.setPadding(new Insets(50));
+
+        // Titre principal
+        Label titleLabel;
+        if (winner != null) {
+            titleLabel = new Label("🎉 VICTOIRE ! 🎉");
+            titleLabel.setTextFill(Color.GOLD);
+        } else {
+            titleLabel = new Label("⚖️ MATCH NUL ⚖️");
+            titleLabel.setTextFill(Color.SILVER);
+        }
+
+        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 64));
+        titleLabel.setStyle("-fx-effect: dropshadow(gaussian, black, 8, 0, 4, 4);");
+
+        // Nom du gagnant et message
+        VBox winnerContainer = new VBox(20);
+        winnerContainer.setAlignment(Pos.CENTER);
+        winnerContainer.setPadding(new Insets(40));
+        winnerContainer.setStyle("-fx-background-color: rgba(0,0,0,0.8); -fx-border-color: white; -fx-border-width: 4; -fx-border-radius: 10; -fx-background-radius: 10;");
+
+        if (winner != null) {
+            // Nom du gagnant
+            Label winnerNameLabel = new Label(winner.getName());
+            winnerNameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 48));
+            winnerNameLabel.setTextFill(winner.getColor());
+            winnerNameLabel.setStyle("-fx-effect: dropshadow(gaussian, black, 5, 0, 2, 2);");
+
+            // Message de victoire
+            Label victoryMessageLabel = new Label("VOUS AVEZ GAGNÉ !");
+            victoryMessageLabel.setFont(Font.font("Arial", FontWeight.BOLD, 32));
+            victoryMessageLabel.setTextFill(Color.WHITE);
+            victoryMessageLabel.setStyle("-fx-effect: dropshadow(gaussian, black, 3, 0, 2, 2);");
+
+            // Statistiques du gagnant (optionnel)
+            String statsText = String.format("Vies restantes: %d ", winner.getLives());
+            Label statsLabel = new Label(statsText);
+            statsLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 18));
+            statsLabel.setTextFill(Color.LIGHTGRAY);
+
+            winnerContainer.getChildren().addAll(winnerNameLabel, victoryMessageLabel, statsLabel);
+        } else {
+            // Message de match nul
+            Label drawLabel = new Label("AUCUN GAGNANT");
+            drawLabel.setFont(Font.font("Arial", FontWeight.BOLD, 36));
+            drawLabel.setTextFill(Color.WHITE);
+            drawLabel.setStyle("-fx-effect: dropshadow(gaussian, black, 3, 0, 2, 2);");
+
+            Label drawMessage = new Label("Tous les joueurs ont été éliminés !");
+            drawMessage.setFont(Font.font("Arial", FontWeight.NORMAL, 20));
+            drawMessage.setTextFill(Color.LIGHTGRAY);
+
+            winnerContainer.getChildren().addAll(drawLabel, drawMessage);
+        }
+
+        // Boutons d'action
+        HBox buttonContainer = new HBox(40);
+        buttonContainer.setAlignment(Pos.CENTER);
+
+        // Bouton Rejouer
+        Button replayButton = createVictoryButton("🔄 REJOUER", Color.web("#00AA00"));
+        replayButton.setOnAction(e -> {
+            System.out.println("🔄 Relancement de la partie...");
+            // Relancer la même partie avec les mêmes paramètres
+            restartGame();
+        });
+
+        // Bouton Retour au menu
+        Button menuButton = createVictoryButton("🏠 MENU PRINCIPAL", Color.web("#0088FF"));
+        menuButton.setOnAction(e -> {
+            System.out.println("🏠 Retour au menu principal");
+            application.showMenu();
+        });
+
+        buttonContainer.getChildren().addAll(replayButton, menuButton);
+
+        // Assemblage final
+        mainContainer.getChildren().addAll(titleLabel, winnerContainer, buttonContainer);
+        victoryRoot.getChildren().add(mainContainer);
+
+        // Afficher la scène de victoire
+        Scene victoryScene = new Scene(victoryRoot);
+        application.getPrimaryStage().setScene(victoryScene);
+        application.getPrimaryStage().setTitle("🎮 BOMBERMAN - Victoire ! 🎮");
+
+        // Animation d'apparition (optionnel)
+        startVictoryAnimation(titleLabel, winnerContainer);
+
+        System.out.println("🎉 Écran de victoire affiché pour: " + (winner != null ? winner.getName() : "Match nul"));
+    }
+
+    /**
+     * Crée un bouton stylisé pour l'écran de victoire
+     */
+    private Button createVictoryButton(String text, Color baseColor) {
+        Button button = new Button(text);
+        button.setPrefSize(250, 70);
+        button.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        button.setTextFill(Color.WHITE);
+
+        String colorCode = String.format("#%02X%02X%02X",
+                (int) (baseColor.getRed() * 255),
+                (int) (baseColor.getGreen() * 255),
+                (int) (baseColor.getBlue() * 255));
+
+        button.setStyle("-fx-background-color: " + colorCode + "; -fx-border-color: white; -fx-border-width: 4; " +
+                "-fx-border-radius: 10; -fx-background-radius: 10; " +
+                "-fx-effect: dropshadow(gaussian, black, 6, 0, 3, 3);");
+
+        // Effets de survol
+        button.setOnMouseEntered(e -> {
+            Color hoverColor = baseColor.brighter();
+            String hoverColorCode = String.format("#%02X%02X%02X",
+                    (int) (hoverColor.getRed() * 255),
+                    (int) (hoverColor.getGreen() * 255),
+                    (int) (hoverColor.getBlue() * 255));
+
+            button.setStyle("-fx-background-color: " + hoverColorCode + "; -fx-border-color: white; -fx-border-width: 4; " +
+                    "-fx-border-radius: 10; -fx-background-radius: 10; " +
+                    "-fx-effect: dropshadow(gaussian, black, 8, 0, 4, 4);");
+            button.setScaleX(1.05);
+            button.setScaleY(1.05);
+        });
+
+        button.setOnMouseExited(e -> {
+            button.setStyle("-fx-background-color: " + colorCode + "; -fx-border-color: white; -fx-border-width: 4; " +
+                    "-fx-border-radius: 10; -fx-background-radius: 10; " +
+                    "-fx-effect: dropshadow(gaussian, black, 6, 0, 3, 3);");
+            button.setScaleX(1.0);
+            button.setScaleY(1.0);
+        });
+
+        return button;
+    }
+
+    /**
+     * Animation d'apparition pour l'écran de victoire
+     */
+    private void startVictoryAnimation(Label titleLabel, VBox winnerContainer) {
+        // Animation du titre (pulsation)
+        Timeline titlePulse = new Timeline(
+                new KeyFrame(Duration.millis(0),
+                        new KeyValue(titleLabel.scaleXProperty(), 1.0),
+                        new KeyValue(titleLabel.scaleYProperty(), 1.0)),
+                new KeyFrame(Duration.millis(500),
+                        new KeyValue(titleLabel.scaleXProperty(), 1.1),
+                        new KeyValue(titleLabel.scaleYProperty(), 1.1)),
+                new KeyFrame(Duration.millis(1000),
+                        new KeyValue(titleLabel.scaleXProperty(), 1.0),
+                        new KeyValue(titleLabel.scaleYProperty(), 1.0))
         );
-        returnToMenu.play();
+        titlePulse.setCycleCount(Timeline.INDEFINITE);
+        titlePulse.play();
+
+        // Animation du conteneur gagnant (apparition en fondu)
+        winnerContainer.setOpacity(0);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(1000), winnerContainer);
+        fadeIn.setFromValue(0.0);
+        fadeIn.setToValue(1.0);
+        fadeIn.setDelay(Duration.millis(500)); // Délai de 0.5 secondes
+        fadeIn.play();
+    }
+
+    /**
+     * Relance la même partie avec les mêmes paramètres
+     */
+    private void restartGame() {
+        try {
+            // Nettoyer le jeu actuel
+            cleanupGame();
+
+            // Récupérer les paramètres de la partie précédente
+            int playerCount = currentPlayerCount;
+            List<Profile> profiles = application.getSelectedProfiles();
+
+            // Réinitialiser la scène de jeu
+            BorderPane gameScene = createGameScene();
+            Scene scene = new Scene(gameScene, 1200, 700);
+
+            // Reconfigurer les événements clavier
+            scene.setOnKeyPressed(event -> {
+                handleKeyPressed(event);
+                event.consume();
+            });
+
+            scene.setOnKeyReleased(event -> {
+                handleKeyReleased(event);
+                event.consume();
+            });
+
+            gameScene.setFocusTraversable(true);
+
+            // Afficher la nouvelle scène
+            application.getPrimaryStage().setScene(scene);
+            application.getPrimaryStage().setTitle("BOMBERMAN - Jeu en cours");
+            gameScene.requestFocus();
+
+            // Réinitialiser le jeu avec les mêmes profils
+            initializeGameWithProfiles(playerCount, profiles);
+
+            System.out.println("✅ Partie relancée avec " + playerCount + " joueurs !");
+
+        } catch (Exception e) {
+            System.err.println("❌ Erreur lors du redémarrage: " + e.getMessage());
+            e.printStackTrace();
+            // En cas d'erreur, retourner au menu
+            application.showMenu();
+        }
     }
 
     public void handleKeyPressed(KeyEvent event) {

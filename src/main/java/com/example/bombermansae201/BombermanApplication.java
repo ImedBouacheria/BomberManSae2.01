@@ -92,7 +92,6 @@ public class BombermanApplication extends Application {
                 event.consume();
             });
 
-
             gameScene.setFocusTraversable(true);
 
             primaryStage.setScene(scene);
@@ -105,7 +104,6 @@ public class BombermanApplication extends Application {
             gameController.initializeGameWithProfiles(playerCount, selectedProfiles);
             System.out.println("✅ Jeu lancé avec succès en mode " + selectedGameMode.getDisplayName() + " !");
             System.out.println("🔍 Focus sur gameScene: " + gameScene.isFocused());
-
 
         } catch (Exception e) {
             System.out.println("❌ Erreur: " + e.getMessage());
@@ -183,8 +181,7 @@ public class BombermanApplication extends Application {
         quitButton.setOnAction(e -> exitGame());
 
         buttonContainer.getChildren().addAll(multiplayerButton, aiButton, profilesButton, settingsButton, quitButton);
-        root.getChildren().addAll(title, buttonContainer);
-
+        root.getChildren().addAll(title, modeSelector, buttonContainer);
 
         Scene scene = new Scene(root, 800, 650); // Hauteur légèrement augmentée
         primaryStage.setScene(scene);
@@ -215,15 +212,23 @@ public class BombermanApplication extends Application {
         toggleModeButton.setFont(Font.font("Arial", FontWeight.BOLD, 12));
         toggleModeButton.setStyle("-fx-background-color: #0066CC; -fx-text-fill: white; -fx-border-color: white; -fx-border-width: 2;");
 
+        // Description du mode actuel
+        Label modeDescription = new Label(selectedGameMode.getDescription());
+        modeDescription.setFont(Font.font("Arial", 10));
+        modeDescription.setTextFill(Color.LIGHTGRAY);
+        modeDescription.setWrapText(true);
+        modeDescription.setMaxWidth(180);
+        modeDescription.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+
         // Action du bouton toggle
         toggleModeButton.setOnAction(e -> {
             selectedGameMode = selectedGameMode.toggle();
             currentModeLabel.setText("Actuel: " + selectedGameMode.getDisplayName());
+            modeDescription.setText(selectedGameMode.getDescription());
 
-            // Feedback visuel et sonore
             System.out.println("🔄 Mode changé vers: " + selectedGameMode.getDisplayName());
 
-            // Animation du bouton (optionnel)
+            // Animation du bouton
             toggleModeButton.setDisable(true);
             javafx.animation.Timeline enableButton = new javafx.animation.Timeline(
                     new javafx.animation.KeyFrame(javafx.util.Duration.millis(200),
@@ -239,31 +244,6 @@ public class BombermanApplication extends Application {
 
         toggleModeButton.setOnMouseExited(e -> {
             toggleModeButton.setStyle("-fx-background-color: #0066CC; -fx-text-fill: white; -fx-border-color: white; -fx-border-width: 2;");
-        });
-
-        // Description du mode actuel
-        Label modeDescription = new Label(selectedGameMode.getDescription());
-        modeDescription.setFont(Font.font("Arial", 10));
-        modeDescription.setTextFill(Color.LIGHTGRAY);
-        modeDescription.setWrapText(true);
-        modeDescription.setMaxWidth(180);
-        modeDescription.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
-
-        // Mettre à jour la description quand le mode change
-        toggleModeButton.setOnAction(e -> {
-            selectedGameMode = selectedGameMode.toggle();
-            currentModeLabel.setText("Actuel: " + selectedGameMode.getDisplayName());
-            modeDescription.setText(selectedGameMode.getDescription());
-
-            System.out.println("🔄 Mode changé vers: " + selectedGameMode.getDisplayName());
-
-            // Animation du bouton
-            toggleModeButton.setDisable(true);
-            javafx.animation.Timeline enableButton = new javafx.animation.Timeline(
-                    new javafx.animation.KeyFrame(javafx.util.Duration.millis(200),
-                            event -> toggleModeButton.setDisable(false))
-            );
-            enableButton.play();
         });
 
         modeContainer.getChildren().addAll(modeTitle, currentModeLabel, toggleModeButton, modeDescription);
@@ -356,6 +336,7 @@ public class BombermanApplication extends Application {
     // Getter pour le mode de jeu sélectionné
     public GameMode getSelectedGameMode() {
         return selectedGameMode;
+    }
 
     // Getters pour accès aux composants
     public ProfileInterface getProfileInterface() {
@@ -364,7 +345,6 @@ public class BombermanApplication extends Application {
 
     public List<Profile> getSelectedProfiles() {
         return selectedProfiles;
-
     }
 
     public static void main(String[] args) {
