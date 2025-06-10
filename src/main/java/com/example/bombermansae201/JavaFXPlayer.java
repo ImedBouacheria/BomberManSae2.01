@@ -22,6 +22,9 @@ public class JavaFXPlayer extends GameObject {
     private int speed;
     private int score;
 
+    // Mode de jeu pour les bombes
+    private GameMode gameMode;
+
     // Position de spawn
     private int spawnX;
     private int spawnY;
@@ -58,8 +61,17 @@ public class JavaFXPlayer extends GameObject {
         this.score = 0;
         this.moving = false;
         this.currentDirection = Direction.DOWN;
+        this.gameMode = GameMode.LIMITED_BOMBS; // Mode par défaut
 
         System.out.println("JavaFXPlayer créé: " + name + " (Couleur: " + color + ", Bombes: " + bombInventory + ")");
+    }
+
+    /**
+     * Définit le mode de jeu pour les bombes
+     */
+    public void setGameMode(GameMode gameMode) {
+        this.gameMode = gameMode;
+        System.out.println(name + " - Mode de jeu défini: " + gameMode.getDisplayName());
     }
 
     /**
@@ -115,22 +127,41 @@ public class JavaFXPlayer extends GameObject {
      * Vérification si le joueur peut placer une bombe
      */
     public boolean canPlaceBomb() {
-        boolean canPlace = alive && bombInventory > 0;
-        System.out.println(name + " - canPlaceBomb: " + canPlace +
-                " (vivant: " + alive +
-                ", bombes en inventaire: " + bombInventory + ")");
+        if (!alive) {
+            System.out.println("❌ " + name + " - canPlaceBomb: false (joueur mort)");
+            return false;
+        }
+
+        // En mode bombes infinies, on peut toujours placer une bombe
+        if (gameMode == GameMode.INFINITE_BOMBS) {
+            System.out.println("✅ " + name + " - canPlaceBomb: true (Mode bombes infinies)");
+            return true;
+        }
+
+        // En mode bombes limitées, vérifier l'inventaire
+        boolean canPlace = bombInventory > 0;
+        System.out.println((canPlace ? "✅" : "❌") + " " + name + " - canPlaceBomb: " + canPlace +
+                " (Mode bombes limitées, inventaire: " + bombInventory + ")");
         return canPlace;
     }
 
     /**
-     * Placement d'une bombe (consomme une bombe de l'inventaire)
+     * Placement d'une bombe (consomme une bombe de l'inventaire en mode limité)
      */
     public void placeBomb() {
-        if (canPlaceBomb()) {
-            bombInventory--;
-            System.out.println("💣 " + name + " place une bombe (Inventaire restant: " + bombInventory + ")");
+        if (!alive) return;
+
+        if (gameMode == GameMode.INFINITE_BOMBS) {
+            System.out.println("💣 " + name + " place une bombe (Mode bombes infinies)");
+            // En mode infini, on ne consomme pas de bombes de l'inventaire
         } else {
-            System.out.println("❌ " + name + " ne peut pas placer de bombe (Inventaire: " + bombInventory + ")");
+            // En mode limité, consommer une bombe de l'inventaire
+            if (bombInventory > 0) {
+                bombInventory--;
+                System.out.println("💣 " + name + " place une bombe (Inventaire restant: " + bombInventory + ")");
+            } else {
+                System.out.println("❌ " + name + " ne peut pas placer de bombe (Inventaire: " + bombInventory + ")");
+            }
         }
     }
 
@@ -138,8 +169,12 @@ public class JavaFXPlayer extends GameObject {
      * Ajouter des bombes à l'inventaire (power-up)
      */
     public void addBombs(int count) {
-        bombInventory += count;
-        System.out.println("💣+ " + name + " gagne " + count + " bombe(s) ! Inventaire: " + bombInventory);
+        if (gameMode == GameMode.LIMITED_BOMBS) {
+            bombInventory += count;
+            System.out.println("💣+ " + name + " gagne " + count + " bombe(s) ! Inventaire: " + bombInventory);
+        } else {
+            System.out.println("💣+ " + name + " collecte un power-up bombes (Mode infini - pas d'effet sur l'inventaire)");
+        }
     }
 
     /**
@@ -179,8 +214,12 @@ public class JavaFXPlayer extends GameObject {
      * Amélioration du nombre de bombes (power-up)
      */
     public void increaseBombCount() {
-        addBombs(1); // Ajouter 1 bombe à l'inventaire
-        System.out.println("💣 " + name + " reçoit une bombe supplémentaire !");
+        addBombs(1); // Ajouter 1 bombe à l'inventaire (ou rien en mode infini)
+        if (gameMode == GameMode.LIMITED_BOMBS) {
+            System.out.println("💣 " + name + " reçoit une bombe supplémentaire !");
+        } else {
+            System.out.println("💣 " + name + " collecte un power-up bombe (Mode infini - effet cosmétique)");
+        }
     }
 
     /**
@@ -224,7 +263,7 @@ public class JavaFXPlayer extends GameObject {
             setGridPosition(spawnX, spawnY);
         }
 
-        System.out.println(name + " réinitialisé pour une nouvelle partie");
+        System.out.println(name + " réinitialisé pour une nouvelle partie (Mode: " + gameMode.getDisplayName() + ")");
     }
 
     /**
@@ -297,11 +336,15 @@ public class JavaFXPlayer extends GameObject {
     }
 
     public int getBombCount() {
-        return bombInventory; // Retourne l'inventaire de bombes pour l'affichage
+        // Afficher "∞" pour le mode infini ou l'inventaire pour le mode limité
+        if (gameMode == GameMode.INFINITE_BOMBS) {
+            return Integer.MAX_VALUE; // Sera géré dans l'affichage UI
+        }
+        return bombInventory;
     }
 
     public int getBombInventory() {
-        return bombInventory; // Retourne l'inventaire de bombes
+        return bombInventory;
     }
 
     public int getBombPower() {
@@ -314,6 +357,10 @@ public class JavaFXPlayer extends GameObject {
 
     public int getScore() {
         return score;
+    }
+
+    public GameMode getGameMode() {
+        return gameMode;
     }
 
     public int getGridX() {
@@ -404,8 +451,9 @@ public class JavaFXPlayer extends GameObject {
      */
     @Override
     public String toString() {
-        return String.format("JavaFXPlayer{name='%s', alive=%s, lives=%d, position=(%d,%d), spawn=(%d,%d), bombes=%d}",
-                name, alive, lives, x, y, spawnX, spawnY, bombInventory);
+        String bombDisplay = (gameMode == GameMode.INFINITE_BOMBS) ? "∞" : String.valueOf(bombInventory);
+        return String.format("JavaFXPlayer{name='%s', alive=%s, lives=%d, position=(%d,%d), spawn=(%d,%d), bombes=%s, mode=%s}",
+                name, alive, lives, x, y, spawnX, spawnY, bombDisplay, gameMode.getDisplayName());
     }
 
     /**
@@ -437,7 +485,9 @@ public class JavaFXPlayer extends GameObject {
 
         switch (powerUpType) {
             case BOMB_COUNT:
-                return bombInventory < 15; // Limite d'inventaire
+                // En mode bombes infinies, on peut toujours collecter (effet cosmétique)
+                // En mode bombes limitées, limite d'inventaire
+                return gameMode == GameMode.INFINITE_BOMBS || bombInventory < 15;
             case BOMB_POWER:
                 return bombPower < 8; // Limite arbitraire
             case SPEED:
@@ -461,7 +511,11 @@ public class JavaFXPlayer extends GameObject {
         switch (powerUpType) {
             case BOMB_COUNT:
                 increaseBombCount();
-                System.out.println("💣 " + name + " - Inventaire de bombes: " + bombInventory);
+                if (gameMode == GameMode.LIMITED_BOMBS) {
+                    System.out.println("💣 " + name + " - Inventaire de bombes: " + bombInventory);
+                } else {
+                    System.out.println("💣 " + name + " - Bombes infinies (collecte cosmétique)");
+                }
                 break;
             case BOMB_POWER:
                 increaseBombPower();
