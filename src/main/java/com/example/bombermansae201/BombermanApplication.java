@@ -12,12 +12,16 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class BombermanApplication extends Application {
 
     private Stage primaryStage;
     private GameController gameController;
+    private ProfileInterface profileInterface;
+    private List<Profile> selectedProfiles; // Profils sélectionnés pour la partie
 
     @Override
     public void start(Stage primaryStage) {
@@ -27,6 +31,12 @@ public class BombermanApplication extends Application {
 
         gameController = new GameController();
         gameController.setApplication(this);
+
+        // Initialiser l'interface des profils
+        profileInterface = new ProfileInterface(this);
+
+        // Initialiser la liste des profils sélectionnés
+        selectedProfiles = new ArrayList<>();
 
         showMainMenu();
     }
@@ -47,18 +57,29 @@ public class BombermanApplication extends Application {
         System.exit(0);
     }
 
+    /**
+     * Affiche l'interface des profils
+     */
+    public void showProfiles() {
+        profileInterface.showProfileMainPage();
+    }
+
     public void showGame(int playerCount) {
         System.out.println("🎮 Lancement du jeu avec " + playerCount + " joueurs");
+
+        // Sélection des profils pour chaque joueur
+        selectedProfiles.clear();
+        selectProfilesForPlayers(playerCount);
 
         try {
             BorderPane gameScene = gameController.createGameScene();
             Scene scene = new Scene(gameScene, 1200, 700);
 
-            // CORRECTION 1: Configuration améliorée des événements clavier
+            // Configuration des événements clavier
             scene.setOnKeyPressed(event -> {
                 System.out.println("🔑 Touche détectée dans BombermanApplication: " + event.getCode());
                 gameController.handleKeyPressed(event);
-                event.consume(); // Important pour éviter la propagation
+                event.consume();
             });
 
             scene.setOnKeyReleased(event -> {
@@ -66,28 +87,49 @@ public class BombermanApplication extends Application {
                 event.consume();
             });
 
-            // CORRECTION 2: Configuration du focus pour recevoir les événements clavier
             gameScene.setFocusTraversable(true);
 
             primaryStage.setScene(scene);
             primaryStage.setTitle("BOMBERMAN - Jeu en cours");
 
-            // CORRECTION 3: Forcer le focus après affichage
             primaryStage.show();
             gameScene.requestFocus();
 
-            // Alternative: Si le problème persiste, utiliser cette méthode
-            // Platform.runLater(() -> gameScene.requestFocus());
-
-            gameController.initializeGame(playerCount);
+            // Initialiser le jeu avec les profils sélectionnés
+            gameController.initializeGameWithProfiles(playerCount, selectedProfiles);
 
             System.out.println("✅ Jeu lancé avec succès !");
-            System.out.println("🔍 Focus sur gameScene: " + gameScene.isFocused());
 
         } catch (Exception e) {
             System.out.println("❌ Erreur: " + e.getMessage());
             e.printStackTrace();
             showAlert("ERREUR", "Impossible de lancer le jeu: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Sélectionne les profils pour chaque joueur
+     */
+    private void selectProfilesForPlayers(int playerCount) {
+        String[] defaultPlayerNames = {"Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4"};
+        Color[] defaultColors = {Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW};
+
+        for (int i = 0; i < playerCount; i++) {
+            System.out.println("🎯 Sélection du profil pour " + defaultPlayerNames[i]);
+
+            Profile selectedProfile = profileInterface.selectProfileForPlayer(
+                    i + 1,
+                    defaultPlayerNames[i],
+                    defaultColors[i]
+            );
+
+            selectedProfiles.add(selectedProfile); // null si aucun profil sélectionné
+
+            if (selectedProfile != null) {
+                System.out.println("✅ Profil sélectionné: " + selectedProfile.getFullName());
+            } else {
+                System.out.println("⚪ Paramètres par défaut pour " + defaultPlayerNames[i]);
+            }
         }
     }
 
@@ -109,22 +151,28 @@ public class BombermanApplication extends Application {
         buttonContainer.setStyle("-fx-background-color: rgba(0,0,0,0.7); -fx-border-color: white; -fx-border-width: 3;");
 
         // Boutons principaux
-        Button multiplayerButton = createButton("MULTIJOUEUR");
+        Button multiplayerButton = createButton("🎮 MULTIJOUEUR");
         multiplayerButton.setOnAction(e -> {
             System.out.println("🎮 BOUTON MULTIJOUEUR CLIQUÉ !");
             launchMultiplayerMode();
         });
 
-        Button aiButton = createButton("CONTRE IA");
+        Button aiButton = createButton("🤖 CONTRE IA");
         aiButton.setOnAction(e -> launchAIMode());
 
-        Button settingsButton = createButton("PARAMÈTRES");
+        Button profilesButton = createButton("👤 PROFILS");
+        profilesButton.setOnAction(e -> {
+            System.out.println("👤 BOUTON PROFILS CLIQUÉ !");
+            showProfiles();
+        });
+
+        Button settingsButton = createButton("⚙️ PARAMÈTRES");
         settingsButton.setOnAction(e -> showSettings());
 
-        Button quitButton = createButton("QUITTER");
+        Button quitButton = createButton("❌ QUITTER");
         quitButton.setOnAction(e -> exitGame());
 
-        buttonContainer.getChildren().addAll(multiplayerButton, aiButton, settingsButton, quitButton);
+        buttonContainer.getChildren().addAll(multiplayerButton, aiButton, profilesButton, settingsButton, quitButton);
         root.getChildren().addAll(title, buttonContainer);
 
         Scene scene = new Scene(root, 800, 600);
@@ -214,6 +262,15 @@ public class BombermanApplication extends Application {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    // Getters pour accès aux composants
+    public ProfileInterface getProfileInterface() {
+        return profileInterface;
+    }
+
+    public List<Profile> getSelectedProfiles() {
+        return selectedProfiles;
     }
 
     public static void main(String[] args) {

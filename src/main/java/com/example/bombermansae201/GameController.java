@@ -239,6 +239,44 @@ public class GameController {
         System.out.println("Jeu initialisé avec succès !");
     }
 
+    /**
+     * Initialise le jeu avec les profils sélectionnés
+     */
+    public void initializeGameWithProfiles(int playerCount, List<Profile> selectedProfiles) {
+        System.out.println("Initialisation du jeu avec " + playerCount + " joueurs et profils...");
+        this.currentPlayerCount = playerCount;
+
+        // Nettoyage des données précédentes
+        cleanupGame();
+
+        // Création de la carte
+        gameMap = new BombermanMap();
+        gameMap.generateRandomMap();
+
+        // Création des joueurs avec profils
+        createPlayersWithProfiles(playerCount, selectedProfiles);
+
+        // Affichage de la carte
+        displayMap();
+
+        // Placement des joueurs
+        placePlayers();
+
+        // Générer quelques power-ups au début
+        generateInitialPowerUps();
+
+        // Mise à jour des infos
+        updatePlayerInfo();
+
+        // Démarrage du jeu
+        startGame();
+
+        // Charger les sprites d'explosion
+        loadExplosionSprites();
+
+        System.out.println("Jeu initialisé avec succès avec profils !");
+    }
+
     private void cleanupGame() {
         // Arrêter le game loop si il tourne
         if (gameLoop != null) {
@@ -294,6 +332,110 @@ public class GameController {
             System.out.println("  Touches: " +
                     playerKeys[i][0] + " " + playerKeys[i][1] + " " +
                     playerKeys[i][2] + " " + playerKeys[i][3] + " " + playerKeys[i][4]);
+        }
+    }
+
+    /**
+     * Crée les joueurs en utilisant les profils sélectionnés
+     */
+    private void createPlayersWithProfiles(int playerCount, List<Profile> selectedProfiles) {
+        players.clear();
+        playerNodes.clear();
+
+        // Configuration des touches par défaut
+        KeyCode[][] playerKeys = {
+                {KeyCode.Z, KeyCode.S, KeyCode.Q, KeyCode.D, KeyCode.A},           // Joueur 1: ZQSD + A
+                {KeyCode.UP, KeyCode.DOWN, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.SPACE}, // Joueur 2: Flèches + SPACE
+                {KeyCode.Y, KeyCode.H, KeyCode.G, KeyCode.J, KeyCode.T},           // Joueur 3: YGHJ + T
+                {KeyCode.O, KeyCode.L, KeyCode.K, KeyCode.M, KeyCode.I}            // Joueur 4: OKLM + I
+        };
+
+        String[] defaultPlayerNames = {"Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4"};
+        javafx.scene.paint.Color[] defaultPlayerColors = {
+                javafx.scene.paint.Color.RED,
+                javafx.scene.paint.Color.BLUE,
+                javafx.scene.paint.Color.GREEN,
+                javafx.scene.paint.Color.YELLOW
+        };
+
+        for (int i = 0; i < playerCount && i < 4; i++) {
+            Profile selectedProfile = (i < selectedProfiles.size()) ? selectedProfiles.get(i) : null;
+
+            JavaFXPlayer player;
+
+            if (selectedProfile != null) {
+                // Utiliser le profil sélectionné
+                System.out.println("🎯 Création du joueur " + (i+1) + " avec le profil: " + selectedProfile.getFullName());
+
+                player = new JavaFXPlayer(selectedProfile.getFullName(), selectedProfile.getColor());
+
+                // Optionnel: appliquer des bonus basés sur l'expérience du profil
+                applyProfileBonuses(player, selectedProfile);
+
+            } else {
+                // Utiliser les paramètres par défaut
+                System.out.println("⚪ Création du joueur " + (i+1) + " avec paramètres par défaut");
+                player = new JavaFXPlayer(defaultPlayerNames[i], defaultPlayerColors[i]);
+            }
+
+            // Configuration des touches
+            player.setKeys(playerKeys[i][0], playerKeys[i][1], playerKeys[i][2], playerKeys[i][3], playerKeys[i][4]);
+            players.add(player);
+
+            System.out.println("✅ Joueur créé: " + player.getName() + " (Couleur: " + player.getColor() + ")");
+            System.out.println("  Touches: " +
+                    playerKeys[i][0] + " " + playerKeys[i][1] + " " +
+                    playerKeys[i][2] + " " + playerKeys[i][3] + " " + playerKeys[i][4]);
+        }
+    }
+
+    /**
+     * Applique des bonus basés sur l'expérience du profil (optionnel)
+     */
+    private void applyProfileBonuses(JavaFXPlayer player, Profile profile) {
+        // Bonus basés sur le nombre de parties jouées
+        int gamesPlayed = profile.getGamesPlayed();
+
+        if (gamesPlayed >= 10) {
+            // Joueur expérimenté: +1 bombe de départ
+            player.addBombs(1);
+            System.out.println("🎁 Bonus expérience: +1 bombe pour " + player.getName());
+        }
+
+        if (gamesPlayed >= 25) {
+            // Joueur vétéran: +1 puissance de bombe
+            player.increaseBombPower();
+            System.out.println("🎁 Bonus vétéran: +1 puissance pour " + player.getName());
+        }
+
+        if (gamesPlayed >= 50) {
+            // Joueur expert: +1 vitesse
+            player.increaseSpeed();
+            System.out.println("🎁 Bonus expert: +1 vitesse pour " + player.getName());
+        }
+    }
+
+    /**
+     * Met à jour les statistiques des profils à la fin de la partie
+     */
+    public void updateProfileStats(JavaFXPlayer winner) {
+        ProfileManager profileManager = ProfileManager.getInstance();
+        List<Profile> selectedProfiles = application.getSelectedProfiles();
+
+        for (int i = 0; i < players.size() && i < selectedProfiles.size(); i++) {
+            Profile profile = selectedProfiles.get(i);
+            if (profile != null) {
+                JavaFXPlayer player = players.get(i);
+                boolean won = (player == winner);
+                int score = player.getScore();
+
+                // Mettre à jour les statistiques
+                profile.updateStats(won, score);
+                profileManager.updateProfile(profile);
+
+                System.out.println("📊 Statistiques mises à jour pour " + profile.getFullName() +
+                        " (Victoire: " + won + ", Score: " + score + ")");
+            }
         }
     }
 
@@ -627,6 +769,9 @@ public class GameController {
         gameStatusLabel.setText(message);
 
         System.out.println("Fin de partie: " + message);
+
+        // Mettre à jour les statistiques des profils
+        updateProfileStats(winner);
 
         // Retour au menu après 5 secondes
         Timeline returnToMenu = new Timeline(
