@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/22.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.bombermansae201.SettingsController">
+    <center>
+        <VBox alignment="CENTER" spacing="40.0" style="-fx-background-color: linear-gradient(to bottom, #2E0080, #4B0080, #6A0080);">
+            <children>
+                <!-- Titre principal -->
+                <Label fx:id="titleLabel" text="PARAMETRES" textFill="WHITE">
+                    <font>
+                        <Font name="Monospace Bold" size="48.0" />
+                    </font>
+                </Label>
+
+                <!-- Conteneur des contrôles -->
+                <VBox alignment="CENTER" maxWidth="800.0" spacing="30.0" style="-fx-background-color: rgba(0, 0, 0, 0.8); -fx-border-color: white; -fx-border-width: 6; -fx-padding: 40;">
+                    <children>
+                        <!-- Titre des contrôles -->
+                        <Label fx:id="controlsTitle" text="CONTROLES DES JOUEURS" textAlignment="CENTER" textFill="YELLOW">
+                            <font>
+                                <Font name="Monospace Bold" size="24.0" />
+                            </font>
+                        </Label>
+
+                        <!-- Grille des contrôles -->
+                        <GridPane alignment="CENTER" hgap="50.0" vgap="25.0">
+                            <children>
+                                <!-- Joueur 1 -->
+                                <VBox fx:id="player1Controls" alignment="CENTER" prefHeight="120.0" prefWidth="200.0" spacing="15.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                    <children>
+                                        <Label text="JOUEUR 1" textFill="#FF4444">
+                                            <font>
+                                                <Font name="Monospace Bold" size="16.0" />
+                                            </font>
+                                        </Label>
+                                        <Label text="Déplacement: Z Q S D&#10;Bombe: A" textAlignment="CENTER" textFill="WHITE">
+                                            <font>
+                                                <Font name="Monospace" size="12.0" />
+                                            </font>
+                                        </Label>
+                                    </children>
+                                    <padding>
+                                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                    </padding>
+                                </VBox>
+
+                                <!-- Joueur 2 -->
+                                <VBox fx:id="player2Controls" alignment="CENTER" prefHeight="120.0" prefWidth="200.0" spacing="15.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                    <children>
+                                        <Label text="JOUEUR 2" textFill="#44FF44">
+                                            <font>
+                                                <Font name="Monospace Bold" size="16.0" />
+                                            </font>
+                                        </Label>
+                                        <Label text="Déplacement: ↑ ↓ ← →&#10;Bombe: ESPACE" textAlignment="CENTER" textFill="WHITE">
+                                            <font>
+                                                <Font name="Monospace" size="12.0" />
+                                            </font>
+                                        </Label>
+                                    </children>
+                                    <padding>
+                                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                    </padding>
+                                </VBox>
+
+                                <!-- Joueur 3 -->
+                                <VBox fx:id="player3Controls" alignment="CENTER" prefHeight="120.0" prefWidth="200.0" spacing="15.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                    <children>
+                                        <Label text="JOUEUR 3" textFill="#4444FF">
+                                            <font>
+                                                <Font name="Monospace Bold" size="16.0" />
+                                            </font>
+                                        </Label>
+                                        <Label text="Déplacement: Y G H J&#10;Bombe: T" textAlignment="CENTER" textFill="WHITE">
+                                            <font>
+                                                <Font name="Monospace" size="12.0" />
+                                            </font>
+                                        </Label>
+                                    </children>
+                                    <padding>
+                                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                    </padding>
+                                </VBox>
+
+                                <!-- Joueur 4 -->
+                                <VBox fx:id="player4Controls" alignment="CENTER" prefHeight="120.0" prefWidth="200.0" spacing="15.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                    <children>
+                                        <Label text="JOUEUR 4" textFill="#FFFF44">
+                                            <font>
+                                                <Font name="Monospace Bold" size="16.0" />
+                                            </font>
+                                        </Label>
+                                        <Label text="Déplacement: O K L M&#10;Bombe: I" textAlignment="CENTER" textFill="WHITE">
+                                            <font>
+                                                <Font name="Monospace" size="12.0" />
+                                            </font>
+                                        </Label>
+                                    </children>
+                                    <padding>
+                                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                    </padding>
+                                </VBox>
+                            </children>
+                        </GridPane>
+                    </children>
+                </VBox>
+
+                <!-- Bouton retour -->
+                <Button fx:id="backButton" mnemonicParsing="false" onAction="#handleBackToMenu" prefHeight="60.0" prefWidth="300.0" style="-fx-background-color: #AA0000; -fx-text-fill: white; -fx-border-color: white; -fx-border-width: 4;" text="RETOUR AU MENU">>
+                    <font>
+                        <Font name="Monospace Bold" size="16.0" />
+                    </font>
+                </Button>
+            </children>
+            <padding>
+                <Insets bottom="50.0" left="50.0" right="50.0" top="50.0" />
+            </padding>
+        </VBox>
+    </center>
+</BorderPane>

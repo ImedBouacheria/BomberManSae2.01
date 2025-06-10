@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.bombermansae201.GameController">
+    <center>
+        <GridPane fx:id="gameGrid" alignment="CENTER" style="-fx-background-color: #000033; -fx-border-color: #FFFFFF; -fx-border-width: 4;">
+            <padding>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+            </padding>
+        </GridPane>
+    </center>
+    <right>
+        <VBox fx:id="gameInfoPanel" alignment="TOP_CENTER" maxWidth="200.0" minWidth="200.0" prefWidth="200.0" spacing="20.0" style="-fx-background-color: #000000; -fx-border-color: #FFFFFF; -fx-border-width: 2;">
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </padding>
+            <children>
+                <Label alignment="CENTER" style="-fx-text-fill: #FFFF00;" text="BOMBERMAN" textAlignment="CENTER">
+                    <font>
+                        <Font name="System Bold" size="18.0" />
+                    </font>
+                </Label>
+                <Separator style="-fx-background-color: #FFFFFF;" />
+                <Label fx:id="gameStatusLabel" alignment="CENTER" style="-fx-text-fill: #00FF00;" text="EN ATTENTE" textAlignment="CENTER">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Label>
+                <Separator style="-fx-background-color: #FFFFFF;" />
+                <VBox spacing="15.0">
+                    <children>
+                        <Label fx:id="player1Info" style="-fx-text-fill: #FF4444;" text="JOUEUR 1&#10;Vies: 3&#10;Bombes: 1&#10;Puissance: 2">
+                            <font>
+                                <Font name="System Bold" size="12.0" />
+                            </font>
+                        </Label>
+                        <Label fx:id="player2Info" style="-fx-text-fill: #4444FF;" text="JOUEUR 2&#10;Vies: 3&#10;Bombes: 1&#10;Puissance: 2">
+                            <font>
+                                <Font name="System Bold" size="12.0" />
+                            </font>
+                        </Label>
+                        <Label fx:id="player3Info" style="-fx-text-fill: #44FF44;" text="JOUEUR 3&#10;Vies: 3&#10;Bombes: 1&#10;Puissance: 2" visible="false">
+                            <font>
+                                <Font name="System Bold" size="12.0" />
+                            </font>
+                        </Label>
+                        <Label fx:id="player4Info" style="-fx-text-fill: #FFFF44;" text="JOUEUR 4&#10;Vies: 3&#10;Bombes: 1&#10;Puissance: 2" visible="false">
+                            <font>
+                                <Font name="System Bold" size="12.0" />
+                            </font>
+                        </Label>
+                    </children>
+                </VBox>
+                <Separator style="-fx-background-color: #FFFFFF;" />
+                <VBox spacing="10.0">
+                    <children>
+                        <Label style="-fx-text-fill: #FFFFFF;" text="CONTROLES:">
+                            <font>
+                                <Font name="System Bold" size="12.0" />
+                            </font>
+                        </Label>
+                        <Label style="-fx-text-fill: #CCCCCC;" text="J1: ZQSD + A&#10;J2: ↑↓←→ + SPACE&#10;J3: YGHJ + T&#10;J4: OKLM + I">
+                            <font>
+                                <Font name="System" size="10.0" />
+                            </font>
+                        </Label>
+                    </children>
+                </VBox>
+                <Separator style="-fx-background-color: #FFFFFF;" />
+                <Button mnemonicParsing="false" onAction="#handleBackToMenu" style="-fx-background-color: #AA0000; -fx-text-fill: #FFFFFF; -fx-border-color: #FFFFFF; -fx-border-width: 2;" text="RETOUR MENU">
+                    <font>
+                        <Font name="System Bold" size="12.0" />
+                    </font>
+                </Button>
+            </children>
+        </VBox>
+    </right>
+</BorderPane>
