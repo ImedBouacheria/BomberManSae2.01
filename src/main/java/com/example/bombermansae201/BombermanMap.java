@@ -1,27 +1,16 @@
 package com.example.bombermansae201;
 
-import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
-import javafx.stage.Stage;
-import javafx.geometry.Pos;
-import javafx.animation.AnimationTimer;
-import javafx.animation.Timeline;
-import javafx.animation.KeyFrame;
-import javafx.util.Duration;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
-import javafx.scene.paint.CycleMethod;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Glow;
+import javafx.geometry.Pos;
 import java.util.Random;
 
-public class BombermanMap extends Application {
+public class BombermanMap {
 
     private static final int GRID_WIDTH = 15;
     private static final int GRID_HEIGHT = 13;
@@ -44,11 +33,7 @@ public class BombermanMap extends Application {
     private static final int DESTRUCTIBLE = 2;
     private static final int SPAWN_ZONE = 3;
 
-    // Variables pour l'animation
-    private double time = 0;
     private Random random = new Random();
-    private StackPane rootPane;
-    private GridPane gridPane;
 
     // Carte de base avec structure fixe
     private int[][] baseMap = {
@@ -69,132 +54,43 @@ public class BombermanMap extends Application {
 
     private int[][] gameMap;
 
-    @Override
-    public void start(Stage primaryStage) {
-        generateRandomMap();
+    public void generateRandomMap() {
+        Random random = new Random();
+        gameMap = new int[GRID_HEIGHT][GRID_WIDTH];
 
-        rootPane = new StackPane();
-
-        // Créer le fond animé
-        createAnimatedBackground();
-
-        // Créer la grille de jeu
-        gridPane = new GridPane();
-        gridPane.setHgap(0);
-        gridPane.setVgap(0);
-
+        // Copie de la carte de base
         for (int row = 0; row < GRID_HEIGHT; row++) {
             for (int col = 0; col < GRID_WIDTH; col++) {
-                StackPane cellContainer = new StackPane();
-                cellContainer.setPrefSize(CELL_SIZE, CELL_SIZE);
-                cellContainer.setAlignment(Pos.CENTER);
-
-                switch (gameMap[row][col]) {
-                    case EMPTY:
-                        cellContainer = createRetroEmptyCell();
-                        break;
-                    case WALL:
-                        cellContainer = createRetroWallCell();
-                        break;
-                    case DESTRUCTIBLE:
-                        cellContainer = createRetroDestructibleCell();
-                        break;
-                    case SPAWN_ZONE:
-                        cellContainer = createRetroSpawnZoneCell();
-                        break;
-                }
-
-                gridPane.add(cellContainer, col, row);
+                gameMap[row][col] = baseMap[row][col];
             }
         }
 
-        // Conteneur de la zone de jeu avec effet
-        StackPane gameArea = new StackPane(gridPane);
-        gameArea.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7); -fx-background-radius: 15; -fx-padding: 25;");
-
-        // Ajouter un effet de lueur
-        DropShadow shadow = new DropShadow();
-        shadow.setColor(RETRO_BLUE);
-        shadow.setRadius(20);
-        gameArea.setEffect(shadow);
-
-        rootPane.getChildren().add(gameArea);
-
-        Scene scene = new Scene(rootPane, GRID_WIDTH * CELL_SIZE + 200, GRID_HEIGHT * CELL_SIZE + 200);
-        primaryStage.setTitle("🎮 BOMBERMAN - Retro Animated Style 🎮");
-        primaryStage.setScene(scene);
-        primaryStage.setResizable(false);
-        primaryStage.show();
-
-        // Démarrer l'animation simple
-        startAnimation();
-    }
-
-    private void createAnimatedBackground() {
-        // Fond principal avec dégradé
-        Rectangle background = new Rectangle(800, 700);
-        LinearGradient gradient = new LinearGradient(
-                0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
-                new Stop(0, Color.web("#001122")),
-                new Stop(0.5, Color.web("#000033")),
-                new Stop(1, Color.web("#000011"))
-        );
-        background.setFill(gradient);
-
-        rootPane.getChildren().add(background);
-
-        // Ajouter quelques étoiles fixes
-        for (int i = 0; i < 30; i++) {
-            Circle star = new Circle(2);
-            star.setFill(Color.WHITE);
-            star.setTranslateX(random.nextDouble() * 600 - 300);
-            star.setTranslateY(random.nextDouble() * 500 - 250);
-            star.setOpacity(0.3 + random.nextDouble() * 0.7);
-            rootPane.getChildren().add(star);
-        }
-
-        // Ajouter des étoiles colorées
-        Color[] colors = {RETRO_YELLOW, RETRO_BLUE, RETRO_PURPLE, RETRO_GREEN};
-        for (int i = 0; i < 15; i++) {
-            Circle colorStar = new Circle(1.5);
-            colorStar.setFill(colors[random.nextInt(colors.length)]);
-            colorStar.setTranslateX(random.nextDouble() * 600 - 300);
-            colorStar.setTranslateY(random.nextDouble() * 500 - 250);
-            colorStar.setOpacity(0.5 + random.nextDouble() * 0.5);
-            rootPane.getChildren().add(colorStar);
+        // Ajout de murs destructibles aléatoires
+        for (int row = 1; row < GRID_HEIGHT - 1; row++) {
+            for (int col = 1; col < GRID_WIDTH - 1; col++) {
+                if (gameMap[row][col] == 0 && !isNearSpawn(row, col)) {
+                    if (random.nextDouble() < 0.65) {
+                        gameMap[row][col] = DESTRUCTIBLE;
+                    }
+                }
+            }
         }
     }
 
-    private void startAnimation() {
-        // Animation simple pour faire scintiller les étoiles
-        Timeline timeline = new Timeline(
-                new KeyFrame(Duration.seconds(0.1), e -> {
-                    time += 0.1;
-                    // Faire scintiller quelques étoiles aléatoirement
-                    if (random.nextDouble() < 0.1) {
-                        updateStarsTwinkle();
-                    }
-                })
-        );
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.play();
+    private boolean isNearSpawn(int row, int col) {
+        // Zones de spawn aux 4 coins
+        if ((row <= 2 && col <= 2)) return true;
+        if ((row <= 2 && col >= GRID_WIDTH - 3)) return true;
+        if ((row >= GRID_HEIGHT - 3 && col <= 2)) return true;
+        if ((row >= GRID_HEIGHT - 3 && col >= GRID_WIDTH - 3)) return true;
+
+        return false;
     }
 
-    private void updateStarsTwinkle() {
-        // Simple effet de scintillement sur les étoiles existantes
-        rootPane.getChildren().stream()
-                .filter(node -> node instanceof Circle)
-                .forEach(node -> {
-                    Circle star = (Circle) node;
-                    if (random.nextDouble() < 0.3) {
-                        double newOpacity = 0.2 + random.nextDouble() * 0.8;
-                        star.setOpacity(newOpacity);
-                    }
-                });
-    }
-
-    private StackPane createRetroEmptyCell() {
+    public StackPane createRetroEmptyCell() {
         StackPane container = new StackPane();
+        container.setPrefSize(CELL_SIZE, CELL_SIZE);
+        container.setAlignment(Pos.CENTER);
 
         Rectangle floor = new Rectangle(CELL_SIZE, CELL_SIZE);
         floor.setFill(RETRO_GRAY);
@@ -218,8 +114,10 @@ public class BombermanMap extends Application {
         return container;
     }
 
-    private StackPane createRetroWallCell() {
+    public StackPane createRetroWallCell() {
         StackPane container = new StackPane();
+        container.setPrefSize(CELL_SIZE, CELL_SIZE);
+        container.setAlignment(Pos.CENTER);
 
         Rectangle wall = new Rectangle(CELL_SIZE, CELL_SIZE);
         wall.setFill(RETRO_BLUE);
@@ -272,8 +170,10 @@ public class BombermanMap extends Application {
         return container;
     }
 
-    private StackPane createRetroDestructibleCell() {
+    public StackPane createRetroDestructibleCell() {
         StackPane container = new StackPane();
+        container.setPrefSize(CELL_SIZE, CELL_SIZE);
+        container.setAlignment(Pos.CENTER);
 
         Rectangle block = new Rectangle(CELL_SIZE - 2, CELL_SIZE - 2);
         block.setFill(RETRO_YELLOW);
@@ -310,8 +210,10 @@ public class BombermanMap extends Application {
         return container;
     }
 
-    private StackPane createRetroSpawnZoneCell() {
+    public StackPane createRetroSpawnZoneCell() {
         StackPane container = new StackPane();
+        container.setPrefSize(CELL_SIZE, CELL_SIZE);
+        container.setAlignment(Pos.CENTER);
 
         Rectangle floor = new Rectangle(CELL_SIZE, CELL_SIZE);
         floor.setFill(RETRO_GREEN);
@@ -369,37 +271,33 @@ public class BombermanMap extends Application {
         return container;
     }
 
-    private void generateRandomMap() {
-        Random random = new Random();
-        gameMap = new int[GRID_HEIGHT][GRID_WIDTH];
+    // Getters et setters
+    public int[][] getGameMap() {
+        return gameMap;
+    }
 
-        for (int row = 0; row < GRID_HEIGHT; row++) {
-            for (int col = 0; col < GRID_WIDTH; col++) {
-                gameMap[row][col] = baseMap[row][col];
-            }
-        }
-
-        for (int row = 1; row < GRID_HEIGHT - 1; row++) {
-            for (int col = 1; col < GRID_WIDTH - 1; col++) {
-                if (gameMap[row][col] == 0 && !isNearSpawn(row, col)) {
-                    if (random.nextDouble() < 0.65) {
-                        gameMap[row][col] = DESTRUCTIBLE;
-                    }
-                }
-            }
+    public void setCell(int x, int y, int value) {
+        if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
+            gameMap[y][x] = value;
         }
     }
 
-    private boolean isNearSpawn(int row, int col) {
-        if ((row <= 2 && col <= 2)) return true;
-        if ((row <= 2 && col >= GRID_WIDTH - 3)) return true;
-        if ((row >= GRID_HEIGHT - 3 && col <= 2)) return true;
-        if ((row >= GRID_HEIGHT - 3 && col >= GRID_WIDTH - 3)) return true;
-
-        return false;
+    public int getCell(int x, int y) {
+        if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
+            return gameMap[y][x];
+        }
+        return -1; // Valeur invalide
     }
 
-    public static void main(String[] args) {
-        launch(args);
+    public int getGridWidth() {
+        return GRID_WIDTH;
+    }
+
+    public int getGridHeight() {
+        return GRID_HEIGHT;
+    }
+
+    public int getCellSize() {
+        return CELL_SIZE;
     }
 }
