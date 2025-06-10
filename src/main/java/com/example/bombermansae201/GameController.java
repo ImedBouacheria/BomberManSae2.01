@@ -40,8 +40,10 @@ public class GameController {
     private Label player3Info;
     private Label player4Info;
     private Label gameStatusLabel;
+    private Label gameModeLabel;
     private VBox gameInfoPanel;
     private Button backToMenuButton;
+    private Button toggleGameModeButton;
 
     // Logique de jeu
     private BombermanApplication application;
@@ -52,6 +54,7 @@ public class GameController {
     private Set<KeyCode> pressedKeys;
     private AnimationTimer gameLoop;
     private GameState currentState;
+    private GameMode currentGameMode; // Mode de jeu pour les bombes
     private int currentPlayerCount;
 
     // Tracking des nodes pour éviter les traces
@@ -95,6 +98,7 @@ public class GameController {
         powerUpNodes = new HashMap<>();
         lastMoveTime = new HashMap<>();
         currentState = GameState.MENU;
+        currentGameMode = GameMode.LIMITED_BOMBS; // Mode par défaut
         lastPowerUpSpawn = 0;
 
         // Initialisation des positions de spawn
@@ -106,6 +110,11 @@ public class GameController {
 
     public void setApplication(BombermanApplication app) {
         this.application = app;
+        // Récupérer immédiatement le mode de jeu sélectionné
+        if (app != null) {
+            this.currentGameMode = app.getSelectedGameMode();
+            System.out.println("🎮 Mode de jeu configuré dans GameController: " + currentGameMode.getDisplayName());
+        }
     }
 
     public BorderPane createGameScene() {
@@ -118,9 +127,6 @@ public class GameController {
         // Création du panneau d'informations
         createInfoPanel();
         root.setRight(gameInfoPanel);
-
-        // PAS de configuration des événements clavier ici pour éviter les doublons
-        // Les événements sont gérés dans BombermanApplication
 
         return root;
     }
@@ -135,7 +141,7 @@ public class GameController {
     }
 
     private void createInfoPanel() {
-        gameInfoPanel = new VBox(20);
+        gameInfoPanel = new VBox(15); // Espacement réduit pour faire place au nouveau bouton
         gameInfoPanel.setAlignment(Pos.TOP_CENTER);
         gameInfoPanel.setMaxWidth(200);
         gameInfoPanel.setMinWidth(200);
@@ -149,6 +155,27 @@ public class GameController {
         // Status du jeu
         gameStatusLabel = new Label("EN ATTENTE");
         gameStatusLabel.setStyle("-fx-text-fill: #00FF00; -fx-font-size: 14; -fx-font-weight: bold;");
+
+        // Mode de jeu actuel
+        gameModeLabel = new Label("Mode: " + currentGameMode.getDisplayName());
+        gameModeLabel.setStyle("-fx-text-fill: #FFAA00; -fx-font-size: 12; -fx-font-weight: bold;");
+
+        // Bouton pour changer le mode de jeu
+        toggleGameModeButton = new Button("Changer Mode");
+        toggleGameModeButton.setStyle("-fx-background-color: #0066CC; -fx-text-fill: #FFFFFF; " +
+                "-fx-border-color: #FFFFFF; -fx-border-width: 2; -fx-font-size: 10; -fx-font-weight: bold;");
+        toggleGameModeButton.setOnAction(e -> toggleGameMode());
+
+        // Effet de survol pour le bouton
+        toggleGameModeButton.setOnMouseEntered(e -> {
+            toggleGameModeButton.setStyle("-fx-background-color: #0088FF; -fx-text-fill: #FFFFFF; " +
+                    "-fx-border-color: #FFFFFF; -fx-border-width: 2; -fx-font-size: 10; -fx-font-weight: bold;");
+        });
+
+        toggleGameModeButton.setOnMouseExited(e -> {
+            toggleGameModeButton.setStyle("-fx-background-color: #0066CC; -fx-text-fill: #FFFFFF; " +
+                    "-fx-border-color: #FFFFFF; -fx-border-width: 2; -fx-font-size: 10; -fx-font-weight: bold;");
+        });
 
         // Création des labels pour les joueurs
         createPlayerLabels();
@@ -166,6 +193,8 @@ public class GameController {
         gameInfoPanel.getChildren().addAll(
                 titleLabel,
                 gameStatusLabel,
+                gameModeLabel,
+                toggleGameModeButton,
                 player1Info,
                 player2Info,
                 player3Info,
@@ -173,6 +202,47 @@ public class GameController {
                 controlsInfo,
                 backToMenuButton
         );
+    }
+
+    private void toggleGameMode() {
+        // Alterner entre les modes
+        currentGameMode = currentGameMode.toggle();
+
+        // Mettre à jour l'affichage
+        updateGameModeDisplay();
+
+        // Appliquer le nouveau mode à tous les joueurs
+        for (JavaFXPlayer player : players) {
+            player.setGameMode(currentGameMode);
+
+            // En mode infini, s'assurer que les joueurs ont des bombes
+            if (currentGameMode == GameMode.INFINITE_BOMBS) {
+                // Pas besoin de changer l'inventaire, juste s'assurer qu'ils peuvent placer des bombes
+                System.out.println("🔄 " + player.getName() + " passe en mode bombes infinies");
+            } else {
+                // En mode limité, s'assurer qu'ils ont au moins quelques bombes
+                if (player.getBombInventory() == 0) {
+                    player.setBombInventory(3); // Redonner des bombes
+                    System.out.println("🔄 " + player.getName() + " reçoit 3 bombes pour le mode limité");
+                }
+            }
+        }
+
+        // Mettre à jour les informations des joueurs
+        updatePlayerInfo();
+
+        System.out.println("🔄 Mode de jeu changé: " + currentGameMode.getDisplayName());
+
+        // Afficher une notification visuelle (optionnel)
+        String modeDescription = currentGameMode == GameMode.INFINITE_BOMBS ?
+                "Bombes illimitées activées !" : "Bombes limitées activées !";
+        System.out.println("📢 " + modeDescription);
+    }
+
+    private void updateGameModeDisplay() {
+        if (gameModeLabel != null) {
+            gameModeLabel.setText("Mode: " + currentGameMode.getDisplayName());
+        }
     }
 
     private void createPlayerLabels() {
@@ -208,6 +278,12 @@ public class GameController {
         System.out.println("Initialisation du jeu avec " + playerCount + " joueurs...");
         this.currentPlayerCount = playerCount;
 
+        // Récupérer le mode de jeu sélectionné depuis l'application
+        if (application != null) {
+            currentGameMode = application.getSelectedGameMode();
+            System.out.println("🎮 Mode de jeu récupéré: " + currentGameMode.getDisplayName());
+        }
+
         // Nettoyage des données précédentes
         cleanupGame();
 
@@ -218,6 +294,9 @@ public class GameController {
         // Création des joueurs
         createPlayers(playerCount);
 
+        // DIAGNOSTIC: Vérifier l'état des joueurs après création
+        diagnosticPlayersState();
+
         // Affichage de la carte
         displayMap();
 
@@ -227,7 +306,8 @@ public class GameController {
         // Générer seulement quelques power-ups au début (optionnel)
         generateInitialPowerUps();
 
-        // Mise à jour des infos
+        // Mise à jour des infos (y compris le mode de jeu)
+        updateGameModeDisplay();
         updatePlayerInfo();
 
         // Démarrage du jeu
@@ -236,7 +316,19 @@ public class GameController {
         // Charger les sprites d'explosion
         loadExplosionSprites();
 
-        System.out.println("Jeu initialisé avec succès !");
+        System.out.println("Jeu initialisé avec succès en mode " + currentGameMode.getDisplayName() + " !");
+    }
+
+    private void diagnosticPlayersState() {
+        System.out.println("=== DIAGNOSTIC DES JOUEURS ===");
+        for (int i = 0; i < players.size(); i++) {
+            JavaFXPlayer player = players.get(i);
+            System.out.println("Joueur " + (i+1) + ": " + player.getName());
+            System.out.println("  - Mode: " + player.getGameMode().getDisplayName());
+            System.out.println("  - Inventaire bombes: " + player.getBombInventory());
+            System.out.println("  - Peut placer bombe: " + player.canPlaceBomb());
+        }
+        System.out.println("================================");
     }
 
     /**
@@ -327,8 +419,19 @@ public class GameController {
         for (int i = 0; i < playerCount && i < 4; i++) {
             JavaFXPlayer player = new JavaFXPlayer(playerNames[i], playerColors[i]);
             player.setKeys(playerKeys[i][0], playerKeys[i][1], playerKeys[i][2], playerKeys[i][3], playerKeys[i][4]);
+
+            // IMPORTANT: Appliquer le mode de jeu AVANT d'ajouter le joueur
+            player.setGameMode(currentGameMode);
+
+            // En mode bombes infinies, l'inventaire initial n'a pas d'importance
+            if (currentGameMode == GameMode.INFINITE_BOMBS) {
+                System.out.println("🚀 " + playerNames[i] + " configuré en mode BOMBES INFINIES");
+            } else {
+                System.out.println("🎯 " + playerNames[i] + " configuré en mode BOMBES LIMITÉES (3 bombes)");
+            }
+
             players.add(player);
-            System.out.println("Joueur créé: " + playerNames[i] + " (Couleur: " + playerColors[i] + ")");
+            System.out.println("Joueur créé: " + playerNames[i] + " (Couleur: " + playerColors[i] + ", Mode: " + currentGameMode.getDisplayName() + ")");
             System.out.println("  Touches: " +
                     playerKeys[i][0] + " " + playerKeys[i][1] + " " +
                     playerKeys[i][2] + " " + playerKeys[i][3] + " " + playerKeys[i][4]);
@@ -642,8 +745,17 @@ public class GameController {
             if (i < players.size()) {
                 JavaFXPlayer player = players.get(i);
                 String aliveStatus = player.isAlive() ? "VIVANT" : "MORT";
-                infoLabels[i].setText(String.format("%s\nVies: %d\nBombes: %d\nPuissance: %d\nStatut: %s",
-                        player.getName(), player.getLives(), player.getBombCount(),
+
+                // Affichage spécial pour les bombes selon le mode
+                String bombDisplay;
+                if (player.getGameMode() == GameMode.INFINITE_BOMBS) {
+                    bombDisplay = "∞"; // Symbole infini
+                } else {
+                    bombDisplay = String.valueOf(player.getBombInventory());
+                }
+
+                infoLabels[i].setText(String.format("%s\nVies: %d\nBombes: %s\nPuissance: %d\nStatut: %s",
+                        player.getName(), player.getLives(), bombDisplay,
                         player.getBombPower(), aliveStatus));
                 infoLabels[i].setVisible(true);
             } else {
@@ -676,7 +788,7 @@ public class GameController {
         };
 
         gameLoop.start();
-        System.out.println("Boucle de jeu démarrée avec apparition aléatoire de power-ups");
+        System.out.println("Boucle de jeu démarrée avec mode: " + currentGameMode.getDisplayName());
     }
 
     private void updateGame() {
@@ -930,8 +1042,12 @@ public class GameController {
     }
 
     private void placeBomb(JavaFXPlayer player) {
+        System.out.println("🔍 " + player.getName() + " tente de placer une bombe...");
+        System.out.println("🔍 Mode actuel du joueur: " + player.getGameMode().getDisplayName());
+        System.out.println("🔍 Inventaire du joueur: " + player.getBombInventory());
+
         if (!player.canPlaceBomb()) {
-            System.out.println(player.getName() + " ne peut pas placer de bombe");
+            System.out.println("❌ " + player.getName() + " ne peut pas placer de bombe");
             return;
         }
 
@@ -940,6 +1056,8 @@ public class GameController {
 
         JavaFXBomb bomb = new JavaFXBomb(player, bombX, bombY, player.getBombPower());
         bombs.add(bomb);
+
+        // IMPORTANT: Appeler placeBomb() APRÈS avoir créé la bombe pour la logique d'inventaire
         player.placeBomb();
 
         // Ajout visuel de la bombe
@@ -953,7 +1071,8 @@ public class GameController {
         // Démarrage du timer de la bombe
         bomb.startCountdown(() -> explodeBomb(bomb));
 
-        System.out.println(player.getName() + " place une bombe en (" + bombX + ", " + bombY + ")");
+        System.out.println("✅ " + player.getName() + " a placé une bombe en (" + bombX + ", " + bombY + ")");
+        System.out.println("🔍 Inventaire après placement: " + player.getBombInventory());
     }
 
     private void explodeBomb(JavaFXBomb bomb) {
