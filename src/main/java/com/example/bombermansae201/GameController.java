@@ -602,32 +602,21 @@ public class GameController {
                 javafx.scene.paint.Color.YELLOW
         };
 
-        // TOUJOURS créer 4 joueurs (humains + IA)
-        for (int i = 0; i < 4; i++) {
+        // Créer uniquement le nombre de joueurs demandés (playerCount)
+        for (int i = 0; i < playerCount; i++) {
             JavaFXPlayer player;
+            Profile selectedProfile = (i < selectedProfiles.size()) ? selectedProfiles.get(i) : null;
 
-            if (i < playerCount) {
-                // Joueurs humains
-                Profile selectedProfile = (i < selectedProfiles.size()) ? selectedProfiles.get(i) : null;
-
-                if (selectedProfile != null) {
-                    System.out.println("🎯 Création du joueur " + (i + 1) + " avec le profil: " + selectedProfile.getFullName());
-
-                    player = new JavaFXPlayer(selectedProfile.getFullName(), selectedProfile.getColor());
-
-                    // Bonus éventuels basés sur l'expérience
-                    applyProfileBonuses(player, selectedProfile);
-                } else {
-                    System.out.println("⚪ Création du joueur " + (i + 1) + " avec paramètres par défaut");
-                    player = new JavaFXPlayer(defaultPlayerNames[i], defaultPlayerColors[i]);
-                }
+            if (selectedProfile != null) {
+                System.out.println("🎯 Création du joueur " + (i + 1) + " avec le profil: " + selectedProfile.getFullName());
+                player = new JavaFXPlayer(selectedProfile.getFullName(), selectedProfile.getColor());
+                applyProfileBonuses(player, selectedProfile);
             } else {
-                // IA pour compléter jusqu'à 4 joueurs
-                System.out.println("🤖 Création de l'IA pour la position " + (i + 1));
-                player = new JavaFXPlayer("IA " + (i + 1), defaultPlayerColors[i]);
+                System.out.println("⚪ Création du joueur " + (i + 1) + " avec paramètres par défaut");
+                player = new JavaFXPlayer(defaultPlayerNames[i], defaultPlayerColors[i]);
             }
 
-            // Configuration des touches (même pour l'IA, sinon problème possible)
+            // Configuration des touches
             player.setKeys(playerKeys[i][0], playerKeys[i][1], playerKeys[i][2], playerKeys[i][3], playerKeys[i][4]);
 
             // Appliquer le mode de jeu
