@@ -23,6 +23,7 @@ public class BombermanApplication extends Application {
     private GameMode selectedGameMode = GameMode.LIMITED_BOMBS; // Mode par défaut
     private ProfileInterface profileInterface;
     private List<Profile> selectedProfiles; // Profils sélectionnés pour la partie
+    private AIManager aiManager;
 
     @Override
     public void start(Stage primaryStage) {
@@ -130,12 +131,15 @@ public class BombermanApplication extends Application {
         profileInterface.showProfileMainPage();
     }
 
-    public void showGame(int playerCount) {
+    public void showGame(int playerCount, boolean isAIMode) {
         System.out.println("🎮 Lancement du jeu avec " + playerCount + " joueurs en mode " + selectedGameMode.getDisplayName());
 
         // Sélection des profils pour chaque joueur
         selectedProfiles.clear();
         selectProfilesForPlayers(playerCount);
+
+        aiManager = new AIManager(gameController); // INITIALISATION CRUCIALE
+        gameController.setAIManager(aiManager);    // transmettre l'AIManager au GameController
 
         try {
             // S'assurer que le GameController connaît le mode sélectionné
@@ -170,6 +174,13 @@ public class BombermanApplication extends Application {
             System.out.println("✅ Jeu lancé avec succès en mode " + selectedGameMode.getDisplayName() + " !");
             System.out.println("🔍 Focus sur gameScene: " + gameScene.isFocused());
 
+            gameController.initializeGameWithProfiles(playerCount, selectedProfiles);
+
+            if (isAIMode) {
+                aiManager = new AIManager(gameController); // Ajouté
+                gameController.setAIManager(aiManager);    // Ajouté
+                setupAIMode(playerCount);
+            }
         } catch (Exception e) {
             System.out.println("❌ Erreur: " + e.getMessage());
             e.printStackTrace();
@@ -333,6 +344,30 @@ public class BombermanApplication extends Application {
         return button;
     }
 
+    private void setupAIMode(int humanPlayers) {
+        System.out.println("🤖 Configuration du mode IA avec " + humanPlayers + " joueurs humains");
+
+        // Dans le mode IA, on ajoute toujours des IA pour compléter à 4 joueurs
+        int totalPlayers = 4;
+
+        // Ajouter des IA pour tous les joueurs sauf les humains
+        for (int i = humanPlayers + 1; i <= totalPlayers; i++) {
+            aiManager.addAIPlayer(i);
+            System.out.println("🤖 Joueur " + i + " configuré comme IA");
+        }
+
+        // Démarrer toutes les IA après un petit délai pour laisser le jeu s'initialiser
+        javafx.application.Platform.runLater(() -> {
+            try {
+                Thread.sleep(1000); // Attendre 1 seconde
+                aiManager.startAllAI();
+                System.out.println("🚀 Mode IA démarré avec succès !");
+            } catch (InterruptedException e) {
+                System.out.println("❌ Erreur lors du démarrage des IA: " + e.getMessage());
+            }
+        });
+    }
+
     private void launchMultiplayerMode() {
         System.out.println("🚀 launchMultiplayerMode() appelée avec mode: " + selectedGameMode.getDisplayName());
 
@@ -355,13 +390,13 @@ public class BombermanApplication extends Application {
 
             if (choice == twoPlayers) {
                 System.out.println("🎮 Lancement avec 2 joueurs");
-                showGame(2);
+                showGame(2, false);
             } else if (choice == threePlayers) {
                 System.out.println("🎮 Lancement avec 3 joueurs");
-                showGame(3);
+                showGame(3, false);
             } else if (choice == fourPlayers) {
                 System.out.println("🎮 Lancement avec 4 joueurs");
-                showGame(4);
+                showGame(4, false);
             }
         } else {
             System.out.println("❌ Annulé");
@@ -369,26 +404,40 @@ public class BombermanApplication extends Application {
     }
 
     private void launchAIMode() {
+        System.out.println("🤖 launchAIMode() appelée");
+
         Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
         dialog.setTitle("MODE CONTRE IA");
         dialog.setHeaderText("Combien de joueurs humains ?");
-        dialog.setContentText("Mode actuel: " + selectedGameMode.getDisplayName());
+        dialog.setContentText("Les autres joueurs seront contrôlés par l'IA");
 
-        ButtonType onePlayer = new ButtonType("1 Joueur");
-        ButtonType twoPlayers = new ButtonType("2 Joueurs");
+        ButtonType onePlayer = new ButtonType("1 Joueur (vs 3 IA)");
+        ButtonType twoPlayers = new ButtonType("2 Joueurs (vs 2 IA)");
+        ButtonType aiOnly = new ButtonType("IA seulement (spectateur)");
         ButtonType cancel = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-        dialog.getButtonTypes().setAll(onePlayer, twoPlayers, cancel);
+        dialog.getButtonTypes().setAll(onePlayer, twoPlayers, aiOnly, cancel);
 
         Optional<ButtonType> result = dialog.showAndWait();
         if (result.isPresent()) {
-            if (result.get() == onePlayer) {
-                showGame(1);
-            } else if (result.get() == twoPlayers) {
-                showGame(2);
+            ButtonType choice = result.get();
+            System.out.println("🤖 Choix IA: " + choice.getText());
+
+            if (choice == onePlayer) {
+                System.out.println("🎮 Lancement 1 joueur vs 3 IA");
+                showGame(1, true);
+            } else if (choice == twoPlayers) {
+                System.out.println("🎮 Lancement 2 joueurs vs 2 IA");
+                showGame(2, true);
+            } else if (choice == aiOnly) {
+                System.out.println("🤖 Lancement mode spectateur (4 IA)");
+                showGame(0, true);
             }
+        } else {
+            System.out.println("❌ Annulé");
         }
     }
+
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
