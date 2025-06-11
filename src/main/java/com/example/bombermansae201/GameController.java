@@ -871,11 +871,34 @@ public class GameController {
                 playerMoved = true;
             }
 
+            if (!playerMoved && player.isMoving()) {
+                player.stopMoving();
+                // Mettre à jour le visuel
+                updatePlayerVisual(player);
+            }
+
             // Mettre à jour le temps du dernier mouvement
             if (playerMoved) {
                 lastMoveTime.put(player, currentTime);
             }
         }
+    }
+
+    private void updatePlayerVisual(JavaFXPlayer player) {
+        // Supprimer l'ancienne représentation
+        Node playerNode = playerNodes.get(player);
+        if (playerNode != null) {
+            gameGrid.getChildren().remove(playerNode);
+            playerNodes.remove(player);
+        }
+
+        // Créer et ajouter la nouvelle représentation avec animation
+        StackPane newPlayerNode = player.createVisualRepresentation();
+        newPlayerNode.getStyleClass().add("player-node");
+        newPlayerNode.setUserData("player-" + player.getName());
+
+        gameGrid.add(newPlayerNode, player.getGridX(), player.getGridY());
+        playerNodes.put(player, newPlayerNode);
     }
 
     private void checkWinCondition() {
@@ -1607,6 +1630,33 @@ public class GameController {
         System.out.println("Retour au menu demandé");
         cleanupGame();
         application.showMenu();
+    }
+
+    public class SpriteCache {
+        private static final Map<String, Image[]> cache = new HashMap<>();
+
+        public static Image[] getSprites(String color) {
+            if (!cache.containsKey(color)) {
+                loadSprites(color);
+            }
+            return cache.get(color);
+        }
+
+        private static void loadSprites(String color) {
+            Image[] sprites = new Image[8];
+            String[] paths = { /* vos chemins */ };
+
+            try {
+                for (int i = 0; i < paths.length; i++) {
+                    String path = "/com/example/bombermansae201/Personnage/Bleu/" + color + "/" + paths[i];
+                    sprites[i] = new Image(SpriteCache.class.getResourceAsStream(path));
+                }
+                cache.put(color, sprites);
+            } catch (Exception e) {
+                System.err.println("Erreur de chargement des sprites: " + e.getMessage());
+                cache.put(color, null);
+            }
+        }
     }
 
     // ===== SYSTÈME D'EFFETS D'EXPLOSION =====
