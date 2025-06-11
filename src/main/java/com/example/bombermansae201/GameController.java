@@ -252,7 +252,7 @@ public class GameController {
     /**
      * Trouve un joueur par son ID - VERSION SÉCURISÉE
      */
-    private JavaFXPlayer getPlayerById(int playerId) {
+    public JavaFXPlayer getPlayerById(int playerId) {
         if (playerId >= 0 && playerId < players.size()) {
             return players.get(playerId);
         }

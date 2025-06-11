@@ -7,6 +7,13 @@ import java.util.Random;
 import java.util.List;
 import java.util.ArrayList;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
+
+import java.util.List;
+import java.util.Random;
+
 public class AiPlayer {
     private int playerId;
     private GameController gameController;
@@ -29,9 +36,8 @@ public class AiPlayer {
     }
 
     private void initializeAI() {
-        // Timeline pour exécuter les actions IA périodiquement
         aiTimeline = new Timeline(new KeyFrame(
-                Duration.millis(ACTION_INTERVAL + random.nextInt(400)), // Interval variable pour plus de réalisme
+                Duration.millis(ACTION_INTERVAL + random.nextInt(400)),
                 e -> performAIAction()
         ));
         aiTimeline.setCycleCount(Timeline.INDEFINITE);
@@ -53,23 +59,17 @@ public class AiPlayer {
     }
 
     private void performAIAction() {
-        if (!isActive || gameController == null) {
-            return;
-        }
+        if (!isActive || gameController == null) return;
 
         try {
-            // Décision aléatoire : bouger ou poser une bombe
             double actionChoice = random.nextDouble();
 
             if (actionChoice < MOVE_PROBABILITY) {
-                // Mouvement aléatoire
-                performRandomMovement();
+                performSmartMovement(); // 🔍 mouvement intelligent (cases libres uniquement)
             } else if (actionChoice < MOVE_PROBABILITY + BOMB_PROBABILITY) {
-                // Poser une bombe
                 placeBomb();
             }
 
-            // Petite pause aléatoire avant la prochaine action
             adjustNextActionDelay();
 
         } catch (Exception e) {
@@ -77,22 +77,34 @@ public class AiPlayer {
         }
     }
 
-    private void performRandomMovement() {
-        // Directions possibles : HAUT, BAS, GAUCHE, DROITE
-        String[] directions = {"UP", "DOWN", "LEFT", "RIGHT"};
-        String randomDirection = directions[random.nextInt(directions.length)];
+    // ✅ Nouveau : IA choisit seulement des directions valides
+    private void performSmartMovement() {
+        JavaFXPlayer aiPlayer = gameController.getPlayerById(playerId);
 
-        // Simuler l'appui et le relâchement de touche
-        gameController.handleAIMovement(playerId, randomDirection, true);
+        if (aiPlayer == null || !aiPlayer.isAlive()) {
+            System.out.println("⚠️ IA " + playerId + " non valide ou morte.");
+            return;
+        }
 
-        // Arrêter le mouvement après un court délai
-        Timeline stopMovement = new Timeline(new KeyFrame(
-                Duration.millis(200 + random.nextInt(300)),
-                e -> gameController.handleAIMovement(playerId, randomDirection, false)
-        ));
-        stopMovement.play();
+        List<Direction> safeDirs = gameController.getSafeDirections(aiPlayer);
 
-        System.out.println("🤖 Joueur " + playerId + " bouge vers " + randomDirection);
+        if (!safeDirs.isEmpty()) {
+            Direction chosenDir = safeDirs.get(random.nextInt(safeDirs.size()));
+
+            String directionStr = chosenDir.name(); // "UP", "DOWN", "LEFT", "RIGHT"
+
+            gameController.handleAIMovement(playerId, directionStr, true);
+
+            Timeline stopMovement = new Timeline(new KeyFrame(
+                    Duration.millis(200 + random.nextInt(300)),
+                    e -> gameController.handleAIMovement(playerId, directionStr, false)
+            ));
+            stopMovement.play();
+
+            System.out.println("🤖 Joueur " + playerId + " se déplace vers " + directionStr);
+        } else {
+            System.out.println("🤖 IA " + playerId + " reste immobile (aucune case libre)");
+        }
     }
 
     private void placeBomb() {
@@ -101,9 +113,8 @@ public class AiPlayer {
     }
 
     private void adjustNextActionDelay() {
-        // Varier l'intervalle pour un comportement plus naturel
         double newInterval = ACTION_INTERVAL + random.nextInt(600) - 300;
-        newInterval = Math.max(300, newInterval); // Minimum 300ms
+        newInterval = Math.max(300, newInterval);
 
         aiTimeline.stop();
         aiTimeline = new Timeline(new KeyFrame(
