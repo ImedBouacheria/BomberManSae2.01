@@ -1117,6 +1117,66 @@ public class GameController {
         }
     }
 
+    /**
+     * Rafraîchit l'affichage de la map avec le thème actuel
+     * sans modifier les autres éléments (joueurs, bombes, power-ups)
+     */
+    public void refreshMapDisplay() {
+        if (gameGrid == null || gameMap == null) return;
+
+        System.out.println("🔄 Rafraîchissement de l'affichage de la map avec le thème: " + BombermanMap.getCurrentTheme());
+
+        // Sauvegarder les éléments dynamiques (joueurs, bombes, power-ups)
+        Map<JavaFXPlayer, Node> savedPlayerNodes = new HashMap<>(playerNodes);
+        Map<JavaFXBomb, Node> savedBombNodes = new HashMap<>(bombNodes);
+        Map<PowerUp, Node> savedPowerUpNodes = new HashMap<>(powerUpNodes);
+
+        // Nettoyer la grille
+        gameGrid.getChildren().clear();
+
+        // Reconstruire la map avec le nouveau thème
+        int[][] map = gameMap.getGameMap();
+        for (int row = 0; row < GRID_HEIGHT; row++) {
+            for (int col = 0; col < GRID_WIDTH; col++) {
+                StackPane cell = createCellForType(map[row][col]);
+                if (cell != null) {
+                    gameGrid.add(cell, col, row);
+                }
+            }
+        }
+
+        // Réajouter les joueurs
+        savedPlayerNodes.forEach((player, node) -> {
+            if (player.isAlive()) { // Ne réafficher que les joueurs vivants
+                StackPane playerNode = player.createVisualRepresentation();
+                playerNode.getStyleClass().add("player-node");
+                playerNode.setUserData("player-" + player.getName());
+                gameGrid.add(playerNode, player.getGridX(), player.getGridY());
+                playerNodes.put(player, playerNode);
+            }
+        });
+
+        // Réajouter les bombes
+        savedBombNodes.forEach((bomb, node) -> {
+            StackPane bombNode = bomb.createVisualRepresentation();
+            bombNode.getStyleClass().add("bomb-node");
+            bombNode.setUserData("bomb-" + System.currentTimeMillis());
+            gameGrid.add(bombNode, bomb.getGridX(), bomb.getGridY());
+            bombNodes.put(bomb, bombNode);
+        });
+
+        // Réajouter les power-ups non collectés
+        savedPowerUpNodes.forEach((powerUp, node) -> {
+            if (!powerUp.isCollected()) {
+                StackPane powerUpNode = powerUp.createVisualRepresentation();
+                gameGrid.add(powerUpNode, powerUp.getGridX(), powerUp.getGridY());
+                powerUpNodes.put(powerUp, powerUpNode);
+            }
+        });
+
+        System.out.println("✅ Affichage de la map rafraîchi avec succès");
+    }
+
     public void handleKeyPressed(KeyEvent event) {
         if (currentState != GameState.PLAYING) return;
 

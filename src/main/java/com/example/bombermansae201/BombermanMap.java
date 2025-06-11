@@ -27,6 +27,13 @@ public class BombermanMap {
     private static final Color RETRO_BLACK = Color.web("#000000");
     private static final Color RETRO_WHITE = Color.web("#FCFCFC");
 
+    // Palette de couleurs pour le thême pirate
+    private static final Color PIRATE_SAND = Color.web("#F4D03F");
+    private static final Color PIRATE_WOOD = Color.web("#8B4513");
+    private static final Color PIRATE_ISLAND = Color.web("#1E8449");
+    private static final Color PIRATE_TREASURE = Color.web("#F39C12");
+    private static final Color PIRATE_WATER = Color.web("#3498DB");
+
     // Types de cellules
     private static final int EMPTY = 0;
     private static final int WALL = 1;
@@ -77,6 +84,13 @@ public class BombermanMap {
         }
     }
 
+    public enum Theme {
+        CLASSIC,
+        PIRATE
+    }
+
+    private static Theme currentTheme = Theme.CLASSIC;
+
     private boolean isNearSpawn(int row, int col) {
         // Zones de spawn aux 4 coins
         if ((row <= 2 && col <= 2)) return true;
@@ -87,127 +101,234 @@ public class BombermanMap {
         return false;
     }
 
+    public static void setTheme(Theme theme) {
+        currentTheme = theme;
+    }
+
+    public static Theme getCurrentTheme() {
+        return currentTheme;
+    }
+
+    // Méthodes principales avec les noms originaux
     public StackPane createRetroEmptyCell() {
-        StackPane container = new StackPane();
-        container.setPrefSize(CELL_SIZE, CELL_SIZE);
-        container.setAlignment(Pos.CENTER);
+        if (currentTheme == Theme.PIRATE) {
+            StackPane container = new StackPane();
+            container.setPrefSize(CELL_SIZE, CELL_SIZE);
+            container.setAlignment(Pos.CENTER);
 
-        Rectangle floor = new Rectangle(CELL_SIZE, CELL_SIZE);
-        floor.setFill(RETRO_GRAY);
-        floor.setStroke(RETRO_WHITE);
-        floor.setStrokeWidth(1);
-        floor.setOpacity(0.9);
+            Rectangle sand = new Rectangle(CELL_SIZE, CELL_SIZE);
+            sand.setFill(PIRATE_WATER);
+            sand.setStroke(Color.web("#D4AC0D"));
+            sand.setStrokeWidth(1);
 
-        Rectangle checker1 = new Rectangle(4, 4);
-        checker1.setFill(RETRO_WHITE);
-        checker1.setTranslateX(-10);
-        checker1.setTranslateY(-10);
-        checker1.setOpacity(0.7);
+            for (int i = 0; i < 5; i++) {
+                Circle grain = new Circle(1);
+                grain.setFill(Color.web("#D4AC0D"));
+                grain.setTranslateX(random.nextInt(CELL_SIZE) - CELL_SIZE/2);
+                grain.setTranslateY(random.nextInt(CELL_SIZE) - CELL_SIZE/2);
+                container.getChildren().add(grain);
+            }
 
-        Rectangle checker2 = new Rectangle(4, 4);
-        checker2.setFill(RETRO_WHITE);
-        checker2.setTranslateX(10);
-        checker2.setTranslateY(10);
-        checker2.setOpacity(0.7);
+            container.getChildren().add(sand);
+            return container;
+        } else {
+            StackPane container = new StackPane();
+            container.setPrefSize(CELL_SIZE, CELL_SIZE);
+            container.setAlignment(Pos.CENTER);
 
-        container.getChildren().addAll(floor, checker1, checker2);
-        return container;
+            Rectangle floor = new Rectangle(CELL_SIZE, CELL_SIZE);
+            floor.setFill(RETRO_GRAY);
+            floor.setStroke(RETRO_WHITE);
+            floor.setStrokeWidth(1);
+            floor.setOpacity(0.9);
+
+            Rectangle checker1 = new Rectangle(4, 4);
+            checker1.setFill(RETRO_WHITE);
+            checker1.setTranslateX(-10);
+            checker1.setTranslateY(-10);
+            checker1.setOpacity(0.7);
+
+            Rectangle checker2 = new Rectangle(4, 4);
+            checker2.setFill(RETRO_WHITE);
+            checker2.setTranslateX(10);
+            checker2.setTranslateY(10);
+            checker2.setOpacity(0.7);
+
+            container.getChildren().addAll(floor, checker1, checker2);
+            return container;
+        }
     }
 
     public StackPane createRetroWallCell() {
-        StackPane container = new StackPane();
-        container.setPrefSize(CELL_SIZE, CELL_SIZE);
-        container.setAlignment(Pos.CENTER);
+        if (currentTheme == Theme.PIRATE) {
+            StackPane container = new StackPane();
+            container.setPrefSize(CELL_SIZE, CELL_SIZE);
+            container.setAlignment(Pos.CENTER);
 
-        Rectangle wall = new Rectangle(CELL_SIZE, CELL_SIZE);
-        wall.setFill(RETRO_BLUE);
-        wall.setStroke(RETRO_BLACK);
-        wall.setStrokeWidth(2);
+            Rectangle island = new Rectangle(CELL_SIZE, CELL_SIZE);
+            island.setFill(PIRATE_SAND);
+            island.setStroke(Color.web("#145A32"));
+            island.setStrokeWidth(2);
 
-        // Ajouter un effet de lueur aux murs
-        Glow glow = new Glow();
-        glow.setLevel(0.3);
-        wall.setEffect(glow);
+            Polygon leaf1 = new Polygon();
+            leaf1.getPoints().addAll(new Double[]{
+                    0.0, 5.0,
+                    -5.0, 0.0,
+                    0.0, -5.0,
+                    5.0, 0.0
+            });
+            leaf1.setFill(Color.web("#27AE60"));
+            leaf1.setTranslateX(-10);
+            leaf1.setTranslateY(-10);
 
-        Rectangle brick1 = new Rectangle(CELL_SIZE - 8, 6);
-        brick1.setFill(RETRO_WHITE);
-        brick1.setTranslateY(-8);
+            Polygon leaf2 = new Polygon();
+            leaf2.getPoints().addAll(new Double[]{
+                    0.0, 5.0,
+                    -5.0, 0.0,
+                    0.0, -5.0,
+                    5.0, 0.0
+            });
+            leaf2.setFill(Color.web("#27AE60"));
+            leaf2.setTranslateX(10);
+            leaf2.setTranslateY(10);
 
-        Rectangle brick2 = new Rectangle(CELL_SIZE - 8, 6);
-        brick2.setFill(RETRO_WHITE);
-        brick2.setTranslateY(8);
+            container.getChildren().addAll(island, leaf1, leaf2);
+            return container;
+        } else {
+            StackPane container = new StackPane();
+            container.setPrefSize(CELL_SIZE, CELL_SIZE);
+            container.setAlignment(Pos.CENTER);
 
-        Rectangle line1 = new Rectangle(CELL_SIZE - 4, 2);
-        line1.setFill(RETRO_DARK_GRAY);
-        line1.setTranslateY(-2);
+            Rectangle wall = new Rectangle(CELL_SIZE, CELL_SIZE);
+            wall.setFill(RETRO_BLUE);
+            wall.setStroke(RETRO_BLACK);
+            wall.setStrokeWidth(2);
 
-        Rectangle line2 = new Rectangle(CELL_SIZE - 4, 2);
-        line2.setFill(RETRO_DARK_GRAY);
-        line2.setTranslateY(2);
+            Glow glow = new Glow();
+            glow.setLevel(0.3);
+            wall.setEffect(glow);
 
-        Rectangle corner1 = new Rectangle(4, 4);
-        corner1.setFill(RETRO_WHITE);
-        corner1.setTranslateX(-10);
-        corner1.setTranslateY(-10);
+            Rectangle brick1 = new Rectangle(CELL_SIZE - 8, 6);
+            brick1.setFill(RETRO_WHITE);
+            brick1.setTranslateY(-8);
 
-        Rectangle corner2 = new Rectangle(4, 4);
-        corner2.setFill(RETRO_WHITE);
-        corner2.setTranslateX(10);
-        corner2.setTranslateY(-10);
+            Rectangle brick2 = new Rectangle(CELL_SIZE - 8, 6);
+            brick2.setFill(RETRO_WHITE);
+            brick2.setTranslateY(8);
 
-        Rectangle corner3 = new Rectangle(4, 4);
-        corner3.setFill(RETRO_WHITE);
-        corner3.setTranslateX(-10);
-        corner3.setTranslateY(10);
+            Rectangle line1 = new Rectangle(CELL_SIZE - 4, 2);
+            line1.setFill(RETRO_DARK_GRAY);
+            line1.setTranslateY(-2);
 
-        Rectangle corner4 = new Rectangle(4, 4);
-        corner4.setFill(RETRO_WHITE);
-        corner4.setTranslateX(10);
-        corner4.setTranslateY(10);
+            Rectangle line2 = new Rectangle(CELL_SIZE - 4, 2);
+            line2.setFill(RETRO_DARK_GRAY);
+            line2.setTranslateY(2);
 
-        container.getChildren().addAll(wall, brick1, brick2, line1, line2,
-                corner1, corner2, corner3, corner4);
-        return container;
+            Rectangle corner1 = new Rectangle(4, 4);
+            corner1.setFill(RETRO_WHITE);
+            corner1.setTranslateX(-10);
+            corner1.setTranslateY(-10);
+
+            Rectangle corner2 = new Rectangle(4, 4);
+            corner2.setFill(RETRO_WHITE);
+            corner2.setTranslateX(10);
+            corner2.setTranslateY(-10);
+
+            Rectangle corner3 = new Rectangle(4, 4);
+            corner3.setFill(RETRO_WHITE);
+            corner3.setTranslateX(-10);
+            corner3.setTranslateY(10);
+
+            Rectangle corner4 = new Rectangle(4, 4);
+            corner4.setFill(RETRO_WHITE);
+            corner4.setTranslateX(10);
+            corner4.setTranslateY(10);
+
+            container.getChildren().addAll(wall, brick1, brick2, line1, line2,
+                    corner1, corner2, corner3, corner4);
+            return container;
+        }
     }
 
     public StackPane createRetroDestructibleCell() {
-        StackPane container = new StackPane();
-        container.setPrefSize(CELL_SIZE, CELL_SIZE);
-        container.setAlignment(Pos.CENTER);
+        if (currentTheme == Theme.PIRATE) {
+            StackPane container = new StackPane();
+            container.setPrefSize(CELL_SIZE, CELL_SIZE);
+            container.setAlignment(Pos.CENTER);
 
-        Rectangle block = new Rectangle(CELL_SIZE - 2, CELL_SIZE - 2);
-        block.setFill(RETRO_YELLOW);
-        block.setStroke(RETRO_RED);
-        block.setStrokeWidth(2);
+            Rectangle wood = new Rectangle(CELL_SIZE - 2, CELL_SIZE - 2);
+            wood.setFill(PIRATE_WOOD);
+            wood.setStroke(Color.web("#5D4037"));
+            wood.setStrokeWidth(2);
 
-        Rectangle crossV = new Rectangle(4, CELL_SIZE - 8);
-        crossV.setFill(RETRO_RED);
+            for (int i = 0; i < 3; i++) {
+                Rectangle line = new Rectangle(CELL_SIZE - 10, 2);
+                line.setFill(Color.web("#5D4037"));
+                line.setTranslateY(-5 + i * 5);
+                container.getChildren().add(line);
+            }
 
-        Rectangle crossH = new Rectangle(CELL_SIZE - 8, 4);
-        crossH.setFill(RETRO_RED);
+            Circle nail1 = new Circle(2);
+            nail1.setFill(Color.web("#BDC3C7"));
+            nail1.setTranslateX(-8);
+            nail1.setTranslateY(-8);
 
-        Circle dot1 = new Circle(2);
-        dot1.setFill(RETRO_WHITE);
-        dot1.setTranslateX(-8);
-        dot1.setTranslateY(-8);
+            Circle nail2 = new Circle(2);
+            nail2.setFill(Color.web("#BDC3C7"));
+            nail2.setTranslateX(8);
+            nail2.setTranslateY(-8);
 
-        Circle dot2 = new Circle(2);
-        dot2.setFill(RETRO_WHITE);
-        dot2.setTranslateX(8);
-        dot2.setTranslateY(-8);
+            Circle nail3 = new Circle(2);
+            nail3.setFill(Color.web("#BDC3C7"));
+            nail3.setTranslateX(-8);
+            nail3.setTranslateY(8);
 
-        Circle dot3 = new Circle(2);
-        dot3.setFill(RETRO_WHITE);
-        dot3.setTranslateX(-8);
-        dot3.setTranslateY(8);
+            Circle nail4 = new Circle(2);
+            nail4.setFill(Color.web("#BDC3C7"));
+            nail4.setTranslateX(8);
+            nail4.setTranslateY(8);
 
-        Circle dot4 = new Circle(2);
-        dot4.setFill(RETRO_WHITE);
-        dot4.setTranslateX(8);
-        dot4.setTranslateY(8);
+            container.getChildren().addAll(wood, nail1, nail2, nail3, nail4);
+            return container;
+        } else {
+            StackPane container = new StackPane();
+            container.setPrefSize(CELL_SIZE, CELL_SIZE);
+            container.setAlignment(Pos.CENTER);
 
-        container.getChildren().addAll(block, crossV, crossH, dot1, dot2, dot3, dot4);
-        return container;
+            Rectangle block = new Rectangle(CELL_SIZE - 2, CELL_SIZE - 2);
+            block.setFill(RETRO_YELLOW);
+            block.setStroke(RETRO_RED);
+            block.setStrokeWidth(2);
+
+            Rectangle crossV = new Rectangle(4, CELL_SIZE - 8);
+            crossV.setFill(RETRO_RED);
+
+            Rectangle crossH = new Rectangle(CELL_SIZE - 8, 4);
+            crossH.setFill(RETRO_RED);
+
+            Circle dot1 = new Circle(2);
+            dot1.setFill(RETRO_WHITE);
+            dot1.setTranslateX(-8);
+            dot1.setTranslateY(-8);
+
+            Circle dot2 = new Circle(2);
+            dot2.setFill(RETRO_WHITE);
+            dot2.setTranslateX(8);
+            dot2.setTranslateY(-8);
+
+            Circle dot3 = new Circle(2);
+            dot3.setFill(RETRO_WHITE);
+            dot3.setTranslateX(-8);
+            dot3.setTranslateY(8);
+
+            Circle dot4 = new Circle(2);
+            dot4.setFill(RETRO_WHITE);
+            dot4.setTranslateX(8);
+            dot4.setTranslateY(8);
+
+            container.getChildren().addAll(block, crossV, crossH, dot1, dot2, dot3, dot4);
+            return container;
+        }
     }
 
     public StackPane createRetroSpawnZoneCell() {

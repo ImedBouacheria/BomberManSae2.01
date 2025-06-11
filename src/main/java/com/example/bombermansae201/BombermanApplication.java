@@ -11,7 +11,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-
+import javafx.animation.Timeline;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -51,7 +51,72 @@ public class BombermanApplication extends Application {
     }
 
     public void showSettings() {
-        showAlert("PARAMÈTRES", "Page des paramètres - En cours de développement");
+        VBox settingsLayout = new VBox(20);
+        settingsLayout.setAlignment(Pos.CENTER);
+        settingsLayout.setPadding(new Insets(40));
+        settingsLayout.setStyle("-fx-background-color: linear-gradient(to bottom, #2C3E50, #4CA1AF);");
+
+        // Titre
+        Label title = new Label("PARAMÈTRES");
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 40));
+        title.setTextFill(Color.WHITE);
+
+        // Section thème
+        Label themeLabel = new Label("CHANGEMENT DE THÈME");
+        themeLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        themeLabel.setTextFill(Color.WHITE);
+
+        HBox themeButtons = new HBox(20);
+        themeButtons.setAlignment(Pos.CENTER);
+
+        Button classicThemeBtn = createThemeButton("Classique", BombermanMap.Theme.CLASSIC);
+        Button pirateThemeBtn = createThemeButton("Pirate", BombermanMap.Theme.PIRATE);
+
+        themeButtons.getChildren().addAll(classicThemeBtn, pirateThemeBtn);
+
+        // Bouton retour
+        Button backButton = new Button("RETOUR AU MENU");
+        backButton.setPrefSize(200, 50);
+        backButton.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+        backButton.setStyle("-fx-background-color: #E74C3C; -fx-text-fill: white;");
+        backButton.setOnAction(e -> showMainMenu());
+
+        settingsLayout.getChildren().addAll(title, themeLabel, themeButtons, backButton);
+
+        Scene settingsScene = new Scene(settingsLayout, 800, 600);
+        primaryStage.setScene(settingsScene);
+    }
+
+    private Button createThemeButton(String text, BombermanMap.Theme theme) {
+        Button button = new Button(text);
+        button.setPrefSize(200, 80);
+        button.setFont(Font.font("Arial", FontWeight.BOLD, 18));
+
+        if (theme == BombermanMap.Theme.CLASSIC) {
+            button.setStyle("-fx-background-color: #3498DB; -fx-text-fill: white;");
+        } else {
+            button.setStyle("-fx-background-color: #F39C12; -fx-text-fill: white;");
+        }
+
+        button.setOnAction(e -> {
+            BombermanMap.setTheme(theme);
+            System.out.println("Thème changé en : " + text);
+
+            javafx.animation.Timeline timeline = new javafx.animation.Timeline(
+                    new javafx.animation.KeyFrame(javafx.util.Duration.seconds(0.5),
+                            event -> {
+                                if (theme == BombermanMap.Theme.CLASSIC) {
+                                    button.setStyle("-fx-background-color: #3498DB; -fx-text-fill: white;");
+                                } else {
+                                    button.setStyle("-fx-background-color: #F39C12; -fx-text-fill: white;");
+                                }
+                            }
+                    )
+            );
+            timeline.play();
+        });
+
+        return button;
     }
 
     public void exitGame() {
