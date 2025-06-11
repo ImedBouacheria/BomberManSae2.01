@@ -1,5 +1,6 @@
-package com.example.bombermansae201;
+package Joueur;
 
+import fonctionnaliteInitial.GameObject;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.scene.layout.StackPane;

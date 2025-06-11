@@ -1,4 +1,4 @@
-package com.example.bombermansae201;
+package Joueur;
 
 import java.io.*;
 import java.util.ArrayList;

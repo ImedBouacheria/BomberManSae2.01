@@ -1,4 +1,4 @@
-package com.example.bombermansae201;
+package fonctionnaliteInitial;
 
 /**
  * Classe abstraite représentant tous les objets du jeu

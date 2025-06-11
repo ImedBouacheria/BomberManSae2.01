@@ -1,5 +1,6 @@
-package com.example.bombermansae201;
+package fonctionnaliteInitial;
 
+import Etat.PowerUpType;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -8,10 +9,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.effect.Glow;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.effect.Blend;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 
 public class PowerUp extends GameObject {
 

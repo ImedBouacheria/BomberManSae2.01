@@ -1,18 +1,13 @@
-package com.example.bombermansae201;
+package IABomberMan;
 
+import Etat.Direction;
+import fonctionnaliteInitial.GameController;
+import Joueur.JavaFXPlayer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
 import java.util.Random;
 import java.util.List;
-import java.util.ArrayList;
-
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.util.Duration;
-
-import java.util.List;
-import java.util.Random;
 
 public class AiPlayer {
     private int playerId;

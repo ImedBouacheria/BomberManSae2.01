@@ -1,11 +1,10 @@
-package com.example.bombermansae201;
+package fonctionnaliteInitial;
 
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Glow;
 import javafx.geometry.Pos;
 import java.util.Random;
