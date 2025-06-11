@@ -20,10 +20,11 @@ public class AiPlayer {
     private Random random;
     private Timeline aiTimeline;
     private boolean isActive;
+    private boolean justPlacedBomb = false;
 
     // Paramètres de comportement IA
-    private static final double MOVE_PROBABILITY = 0.7;  // 70% de chance de bouger
-    private static final double BOMB_PROBABILITY = 0.3;  // 30% de chance de poser une bombe
+    private static final double MOVE_PROBABILITY = 0.9;  // 90% de chance de bouger
+    private static final double BOMB_PROBABILITY = 0.1;  // 10% de chance de poser une bombe
     private static final double ACTION_INTERVAL = 800;   // Action toutes les 800ms
 
     public AiPlayer(int playerId, GameController gameController) {
@@ -58,16 +59,52 @@ public class AiPlayer {
         System.out.println("🛑 IA Joueur " + playerId + " désactivée");
     }
 
+    private void performEscapeMovement() {
+        JavaFXPlayer aiPlayer = gameController.getPlayerById(playerId);
+
+        if (aiPlayer == null || !aiPlayer.isAlive()) {
+            return;
+        }
+
+        List<Direction> safeDirs = gameController.getSafeDirections(aiPlayer);
+
+        if (!safeDirs.isEmpty()) {
+            // 🔍 Choisir une direction libre pour fuir
+            Direction escapeDir = safeDirs.get(random.nextInt(safeDirs.size()));
+            String directionStr = escapeDir.name();
+
+            gameController.handleAIMovement(playerId, directionStr, true);
+
+            Timeline stopMovement = new Timeline(new KeyFrame(
+                    Duration.millis(100 + random.nextInt(100)), // 🔍 plus rapide que d'habitude
+                    e -> gameController.handleAIMovement(playerId, directionStr, false)
+            ));
+            stopMovement.play();
+
+            System.out.println("🏃💨 IA " + playerId + " fuit vers " + directionStr);
+        } else {
+            System.out.println("⚠️ IA " + playerId + " n'a nulle part où fuir !");
+        }
+    }
+
     private void performAIAction() {
-        if (!isActive || gameController == null) return;
+        if (!isActive || gameController == null) {
+            return;
+        }
 
         try {
-            double actionChoice = random.nextDouble();
+            // 🔍 Si une bombe vient d'être posée, priorité à la fuite !
+            if (justPlacedBomb) {
+                performEscapeMovement(); // méthode à ajouter ci-dessous
+                justPlacedBomb = false;  // Reset pour la prochaine action
+            } else {
+                double actionChoice = random.nextDouble();
 
-            if (actionChoice < MOVE_PROBABILITY) {
-                performSmartMovement(); // 🔍 mouvement intelligent (cases libres uniquement)
-            } else if (actionChoice < MOVE_PROBABILITY + BOMB_PROBABILITY) {
-                placeBomb();
+                if (actionChoice < MOVE_PROBABILITY) {
+                    performSmartMovement(); // méthode existante qui bouge vers cases libres
+                } else if (actionChoice < MOVE_PROBABILITY + BOMB_PROBABILITY) {
+                    placeBomb();
+                }
             }
 
             adjustNextActionDelay();
@@ -109,6 +146,7 @@ public class AiPlayer {
 
     private void placeBomb() {
         gameController.handleAIBombPlacement(playerId);
+        justPlacedBomb = true; // 🔍 Signale qu'une bombe a été posée pour fuir ensuite
         System.out.println("💣 Joueur " + playerId + " pose une bombe");
     }
 

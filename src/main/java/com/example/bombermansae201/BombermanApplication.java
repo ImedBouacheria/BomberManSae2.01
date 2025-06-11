@@ -347,23 +347,21 @@ public class BombermanApplication extends Application {
     private void setupAIMode(int humanPlayers) {
         System.out.println("🤖 Configuration du mode IA avec " + humanPlayers + " joueurs humains");
 
-        // Dans le mode IA, on ajoute toujours des IA pour compléter à 4 joueurs
-        int totalPlayers = 4;
+        int totalPlayers = 4; // On veut toujours 4 joueurs au total
 
-        // Ajouter des IA pour tous les joueurs sauf les humains
-        for (int i = humanPlayers + 1; i <= totalPlayers; i++) {
+        for (int i = humanPlayers; i < totalPlayers; i++) { // 🔍 CORRECTION ici
             aiManager.addAIPlayer(i);
             System.out.println("🤖 Joueur " + i + " configuré comme IA");
         }
 
-        // Démarrer toutes les IA après un petit délai pour laisser le jeu s'initialiser
+        // Lancer l'IA après un petit délai
         javafx.application.Platform.runLater(() -> {
             try {
-                Thread.sleep(1000); // Attendre 1 seconde
+                Thread.sleep(1000); // Laisser le temps à la scène de se charger
                 aiManager.startAllAI();
                 System.out.println("🚀 Mode IA démarré avec succès !");
             } catch (InterruptedException e) {
-                System.out.println("❌ Erreur lors du démarrage des IA: " + e.getMessage());
+                System.out.println("❌ Erreur IA: " + e.getMessage());
             }
         });
     }
