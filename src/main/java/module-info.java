@@ -6,8 +6,8 @@ module com.example.bombermansae201 {
     requires org.kordamp.bootstrapfx.core;
     requires java.desktop;
 
-    opens com.example.Parametre to javafx.fxml;
-    exports com.example.Parametre;
+    opens Parametre to javafx.fxml;
+    exports Parametre;
     exports MenuInterface;
     opens MenuInterface to javafx.fxml;
     exports bombermanMain;

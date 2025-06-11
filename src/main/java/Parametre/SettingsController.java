@@ -1,4 +1,4 @@
-package com.example.Parametre;
+package Parametre;
 
 import bombermanMain.BombermanApplication;
 import javafx.fxml.FXML;
