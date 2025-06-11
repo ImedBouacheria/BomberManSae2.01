@@ -472,6 +472,19 @@ public class GameController {
         System.out.println("================================");
     }
 
+    private void diagnosticPlayerNodes() {
+        System.out.println("==== DIAGNOSTIC DES NŒUDS DE JOUEURS ====");
+        for (JavaFXPlayer player : players) {
+            System.out.println("Joueur: " + player.getName() + " Position: (" +
+                    player.getGridX() + "," + player.getGridY() + ")");
+            System.out.println("Est au spawn: " + player.isAtSpawn());
+            System.out.println("Nœud présent: " + playerNodes.containsKey(player));
+        }
+        System.out.println("Nombre total de nœuds dans la grille: " + gameGrid.getChildren().size());
+        System.out.println("=====================================");
+    }
+
+
     /**
      * Initialise le jeu avec les profils sélectionnés
      */
@@ -1007,6 +1020,22 @@ public class GameController {
         updatePlayerInfo();
     }
 
+    private void cleanupPlayerTraces() {
+        // S'assurer que cette méthode retire correctement tous les anciens nœuds
+        for (JavaFXPlayer player : players) {
+            if (playerNodes.containsKey(player)) {
+                Node oldNode = playerNodes.get(player);
+                gameGrid.getChildren().remove(oldNode);
+
+                // Recréer et placer le nœud à la nouvelle position
+                StackPane newNode = player.createVisualRepresentation();
+                gameGrid.add(newNode, player.getGridX(), player.getGridY());
+                playerNodes.put(player, newNode);
+            }
+        }
+    }
+
+
     private void processContinuousMovement() {
         long currentTime = System.nanoTime();
 
@@ -1398,51 +1427,87 @@ public class GameController {
     }
 
     private void movePlayer(JavaFXPlayer player, Direction direction) {
-        int currentX = player.getGridX();
-        int currentY = player.getGridY();
-        int newX = currentX;
-        int newY = currentY;
+        // Vérifier si le joueur est en vie
+        if (!player.isAlive()) {
+            return;
+        }
 
-        // Calcul de la nouvelle position
+        // Sauvegarder l'ancienne position
+        int oldX = player.getGridX();
+        int oldY = player.getGridY();
+
+        // Calculer la nouvelle position en fonction de la direction
+        int newX = oldX;
+        int newY = oldY;
+
         switch (direction) {
-            case UP -> newY--;
-            case DOWN -> newY++;
-            case LEFT -> newX--;
-            case RIGHT -> newX++;
+            case UP:
+                newY = oldY - 1;
+                break;
+            case DOWN:
+                newY = oldY + 1;
+                break;
+            case LEFT:
+                newX = oldX - 1;
+                break;
+            case RIGHT:
+                newX = oldX + 1;
+                break;
         }
 
-        // Vérification si le mouvement est valide
-        if (isValidPosition(newX, newY) && !isOccupiedByPlayer(newX, newY, player)) {
-
-            // Supprimer l'ancien node du joueur
-            removePlayerFromPosition(player);
-
-            // Restaurer la cellule de base à l'ancienne position
-            restoreBaseCell(currentX, currentY);
-
-            // Mettre à jour la position logique du joueur
-            player.setGridPosition(newX, newY);
-            player.move(direction);
-
-            // Créer et ajouter le nouveau node
-            StackPane newPlayerNode = player.createVisualRepresentation();
-            newPlayerNode.getStyleClass().add("player-node");
-            newPlayerNode.setUserData("player-" + player.getName());
-
-            gameGrid.add(newPlayerNode, newX, newY);
-            playerNodes.put(player, newPlayerNode);
-
-            System.out.println(player.getName() + " bouge vers (" + newX + ", " + newY + ")");
+        // Vérifier si la nouvelle position est valide
+        if (!isValidPosition(newX, newY)) {
+            return;
         }
+
+        // Vérifier s'il y a un obstacle à la nouvelle position
+        int cellType = gameMap.getCell(newX, newY);
+        if (cellType == 1 || cellType == 2) {  // 1 = WALL, 2 = DESTRUCTIBLE
+            return;
+        }
+
+        // Vérifier si un autre joueur occupe déjà cette position
+        if (isOccupiedByPlayer(newX, newY, player)) {
+            return;
+        }
+
+        // Si tout est OK, déplacer le joueur
+
+        // 1. Supprimer seulement le nœud du joueur actuel de l'ancienne position
+        if (playerNodes.containsKey(player)) {
+            Node oldNode = playerNodes.get(player);
+            gameGrid.getChildren().remove(oldNode);
+            playerNodes.remove(player);
+        }
+
+        // 2. Mettre à jour la position interne du joueur
+        player.setGridPosition(newX, newY);
+        player.move(direction);
+
+        // 3. Créer une nouvelle représentation visuelle à la nouvelle position
+        StackPane newNode = player.createVisualRepresentation();
+        gameGrid.add(newNode, newX, newY);
+        playerNodes.put(player, newNode);
+
+        // 4. Vérifier si le joueur a collecté un power-up
+        checkPowerUpCollection();
+
+        // 5. Restaurer visuellement la cellule de base à l'ancienne position
+        restoreBaseCell(oldX, oldY);
     }
 
     private void removePlayerFromPosition(JavaFXPlayer player) {
-        Node playerNode = playerNodes.get(player);
-        if (playerNode != null) {
-            gameGrid.getChildren().remove(playerNode);
+        // S'assurer que cette méthode retire correctement le nœud du joueur
+        if (playerNodes.containsKey(player)) {
+            Node node = playerNodes.get(player);
+            gameGrid.getChildren().remove(node);
             playerNodes.remove(player);
         }
+
+        // Restaurer la cellule de base à l'ancienne position
+        restoreBaseCell(player.getGridX(), player.getGridY());
     }
+
 
     private void restoreBaseCell(int x, int y) {
         // Vérifier qu'il n'y a pas d'autres éléments importants à cette position
@@ -1618,31 +1683,20 @@ public class GameController {
     }
 
     private void respawnPlayer(JavaFXPlayer player) {
-        // Récupérer la position de spawn du joueur
-        int spawnX = player.getSpawnX();
-        int spawnY = player.getSpawnY();
-
-        System.out.println(player.getName() + " respawn à la position (" + spawnX + ", " + spawnY + ")");
-
-        // Mettre à jour la position du joueur directement au spawn
-        player.setGridPosition(spawnX, spawnY);
-
-        // Vérifier si la position de spawn est libre (en excluant le joueur actuel)
-        if (isPositionSafeForRespawn(spawnX, spawnY, player)) {
-            // Créer et ajouter le nouveau node visuel au spawn exact
-            StackPane newPlayerNode = player.createVisualRepresentation();
-            newPlayerNode.getStyleClass().add("player-node");
-            newPlayerNode.setUserData("player-" + player.getName());
-
-            gameGrid.add(newPlayerNode, spawnX, spawnY);
-            playerNodes.put(player, newPlayerNode);
-
-            System.out.println("✅ " + player.getName() + " replacé au spawn exact (" + spawnX + ", " + spawnY + ")");
-        } else {
-            // Si le spawn n'est pas sûr, chercher une position proche
-            System.out.println("⚠️ Spawn occupé pour " + player.getName() + ", recherche d'une position alternative...");
-            respawnPlayerToSafePosition(player);
+        // Supprimer d'abord le nœud existant s'il existe
+        if (playerNodes.containsKey(player)) {
+            Node oldNode = playerNodes.get(player);
+            gameGrid.getChildren().remove(oldNode);
+            playerNodes.remove(player);
         }
+
+        // Puis définir la nouvelle position
+        player.setGridPosition(player.getSpawnX(), player.getSpawnY());
+
+        // Enfin, créer et ajouter le nouveau nœud
+        StackPane newNode = player.createVisualRepresentation();
+        gameGrid.add(newNode, player.getGridX(), player.getGridY());
+        playerNodes.put(player, newNode);
     }
 
     private boolean isPositionSafeForRespawn(int x, int y, JavaFXPlayer playerToRespawn) {
