@@ -1,6 +1,7 @@
 package com.example.bombermansae201;
 
 import javafx.animation.*;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -84,6 +85,7 @@ public class GameController {
     // Constantes
     private static final int GRID_WIDTH = 15;
     private static final int GRID_HEIGHT = 13;
+    private AIManager aiManager;
 
     public GameController() {
         players = new ArrayList<>();
@@ -136,6 +138,158 @@ public class GameController {
         gameGrid.setAlignment(Pos.CENTER);
         gameGrid.setStyle("-fx-background-color: #000033; -fx-border-color: #FFFFFF; -fx-border-width: 4;");
         gameGrid.setPadding(new Insets(10));
+    }
+
+    // ===== NOUVELLES MÉTHODES POUR L'IA =====
+
+    /**
+     * Définit le gestionnaire d'IA
+     */
+    public void setAIManager(AIManager aiManager) {
+        this.aiManager = aiManager;
+        System.out.println("🤖 AIManager configuré dans GameController");
+    }
+
+    /**
+     * Gère les mouvements des IA - VERSION CORRIGÉE
+     */
+    public void handleAIMovement(int playerId, String direction, boolean isPressed) {
+        try {
+            if (!isPressed) return; // On ne traite que les pressions de touches
+
+            // Vérification sécurisée de l'existence du joueur
+            if (playerId < 0 || playerId >= players.size()) {
+                System.out.println("❌ ID joueur IA invalide: " + playerId);
+                return;
+            }
+
+            JavaFXPlayer player = players.get(playerId);
+            if (player == null || !player.isAlive()) {
+                return;
+            }
+
+            // Vérifier le cooldown pour ce joueur
+            long currentTime = System.nanoTime();
+            Long lastMove = lastMoveTime.get(player);
+            if (lastMove != null && (currentTime - lastMove) < MOVE_COOLDOWN) {
+                return; // Joueur encore en cooldown
+            }
+
+            // Convertir la direction string en Direction enum
+            Direction dir = null;
+            switch (direction.toUpperCase()) {
+                case "UP" -> dir = Direction.UP;
+                case "DOWN" -> dir = Direction.DOWN;
+                case "LEFT" -> dir = Direction.LEFT;
+                case "RIGHT" -> dir = Direction.RIGHT;
+            }
+
+            if (dir != null) {
+                movePlayer(player, dir);
+                lastMoveTime.put(player, currentTime);
+                System.out.println("🤖 IA Joueur " + playerId + " bouge " + direction);
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Erreur mouvement IA: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    /**
+     * Retourne une liste des directions que le joueur peut emprunter sans obstacle
+     */
+    public List<Direction> getSafeDirections(JavaFXPlayer player) {
+        List<Direction> safeDirections = new ArrayList<>();
+
+        int x = player.getGridX();
+        int y = player.getGridY();
+
+        for (Direction dir : Direction.values()) {
+            int newX = x, newY = y;
+
+            switch (dir) {
+                case UP -> newY--;
+                case DOWN -> newY++;
+                case LEFT -> newX--;
+                case RIGHT -> newX++;
+            }
+
+            if (isValidPosition(newX, newY) &&
+                    !isOccupiedByPlayer(newX, newY, player) &&
+                    !isOccupiedByBomb(newX, newY)) {
+                safeDirections.add(dir);
+            }
+        }
+
+        return safeDirections;
+    }
+
+    /**
+     * Gère le placement de bombes par l'IA - VERSION CORRIGÉE
+     */
+    public void handleAIBombPlacement(int playerId) {
+        try {
+            // Vérification sécurisée de l'existence du joueur
+            if (playerId < 0 || playerId >= players.size()) {
+                System.out.println("❌ ID joueur IA invalide pour bombe: " + playerId);
+                return;
+            }
+
+            JavaFXPlayer player = players.get(playerId);
+            if (player == null || !player.isAlive()) {
+                return;
+            }
+
+            placeBomb(player);
+            System.out.println("💣 IA Joueur " + playerId + " place une bombe");
+
+        } catch (Exception e) {
+            System.out.println("❌ Erreur placement bombe IA: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Trouve un joueur par son ID - VERSION SÉCURISÉE
+     */
+    private JavaFXPlayer getPlayerById(int playerId) {
+        if (playerId >= 0 && playerId < players.size()) {
+            return players.get(playerId);
+        }
+        System.out.println("⚠️ Tentative d'accès à un joueur inexistant: " + playerId);
+        return null;
+    }
+
+    /**
+     * Appelé quand un joueur est éliminé - VERSION SÉCURISÉE
+     */
+    public void onPlayerEliminated(int playerId) {
+        if (aiManager != null && playerId >= 0 && playerId < players.size()) {
+            if (aiManager.hasAIPlayer(playerId)) {
+                aiManager.removeAIPlayer(playerId);
+                System.out.println("🤖 IA du joueur " + playerId + " arrêtée (joueur éliminé)");
+            }
+        }
+    }
+
+    /**
+     * Met en pause toutes les IA
+     */
+    public void pauseAI() {
+        if (aiManager != null) {
+            aiManager.pauseAllAI();
+            System.out.println("🤖 Toutes les IA mises en pause");
+        }
+    }
+
+    /**
+     * Reprend toutes les IA
+     */
+    public void resumeAI() {
+        if (aiManager != null) {
+            aiManager.resumeAllAI();
+            System.out.println("🤖 Toutes les IA reprises");
+        }
     }
 
     private void createInfoPanel() {
@@ -465,35 +619,40 @@ public class GameController {
                 javafx.scene.paint.Color.YELLOW
         };
 
-        for (int i = 0; i < playerCount && i < 4; i++) {
-            Profile selectedProfile = (i < selectedProfiles.size()) ? selectedProfiles.get(i) : null;
-
+        // TOUJOURS créer 4 joueurs (humains + IA)
+        for (int i = 0; i < 4; i++) {
             JavaFXPlayer player;
 
-            if (selectedProfile != null) {
-                // Utiliser le profil sélectionné
-                System.out.println("🎯 Création du joueur " + (i+1) + " avec le profil: " + selectedProfile.getFullName());
+            if (i < playerCount) {
+                // Joueurs humains
+                Profile selectedProfile = (i < selectedProfiles.size()) ? selectedProfiles.get(i) : null;
 
-                player = new JavaFXPlayer(selectedProfile.getFullName(), selectedProfile.getColor());
+                if (selectedProfile != null) {
+                    System.out.println("🎯 Création du joueur " + (i + 1) + " avec le profil: " + selectedProfile.getFullName());
 
-                // Optionnel: appliquer des bonus basés sur l'expérience du profil
-                applyProfileBonuses(player, selectedProfile);
+                    player = new JavaFXPlayer(selectedProfile.getFullName(), selectedProfile.getColor());
 
+                    // Bonus éventuels basés sur l'expérience
+                    applyProfileBonuses(player, selectedProfile);
+                } else {
+                    System.out.println("⚪ Création du joueur " + (i + 1) + " avec paramètres par défaut");
+                    player = new JavaFXPlayer(defaultPlayerNames[i], defaultPlayerColors[i]);
+                }
             } else {
-                // Utiliser les paramètres par défaut
-                System.out.println("⚪ Création du joueur " + (i+1) + " avec paramètres par défaut");
-                player = new JavaFXPlayer(defaultPlayerNames[i], defaultPlayerColors[i]);
+                // IA pour compléter jusqu'à 4 joueurs
+                System.out.println("🤖 Création de l'IA pour la position " + (i + 1));
+                player = new JavaFXPlayer("IA " + (i + 1), defaultPlayerColors[i]);
             }
 
-            // Configuration des touches
+            // Configuration des touches (même pour l'IA, sinon problème possible)
             player.setKeys(playerKeys[i][0], playerKeys[i][1], playerKeys[i][2], playerKeys[i][3], playerKeys[i][4]);
 
-            // IMPORTANT: Appliquer le mode de jeu
+            // Appliquer le mode de jeu
             player.setGameMode(currentGameMode);
 
             players.add(player);
 
-            System.out.println("✅ Joueur créé: " + player.getName() + " (Couleur: " + player.getColor() + ")");
+            System.out.println("✅ Joueur ajouté: " + player.getName() + " (Couleur: " + player.getColor() + ")");
             System.out.println("  Touches: " +
                     playerKeys[i][0] + " " + playerKeys[i][1] + " " +
                     playerKeys[i][2] + " " + playerKeys[i][3] + " " + playerKeys[i][4]);
@@ -574,27 +733,54 @@ public class GameController {
         }
     }
 
+    /**
+     * MÉTHODE CORRIGÉE POUR L'AFFICHAGE DES JOUEURS (Y COMPRIS IA)
+     */
     private void placePlayers() {
         for (int i = 0; i < players.size(); i++) {
             JavaFXPlayer player = players.get(i);
             int spawnX = spawnPositions[i][0];
             int spawnY = spawnPositions[i][1];
 
-            // Stocker la position de spawn dans le joueur pour pouvoir y retourner
+            // Stocker la position de spawn dans le joueur
             player.setSpawnPosition(spawnX, spawnY);
             player.setGridPosition(spawnX, spawnY);
 
-            // Création et ajout du node visuel
-            StackPane playerNode = player.createVisualRepresentation();
+            System.out.println("🎯 Placement du joueur " + (i + 1) + " en position (" + spawnX + ", " + spawnY + ")");
 
-            // Ajouter un identifiant pour le tracking
-            playerNode.getStyleClass().add("player-node");
-            playerNode.setUserData("player-" + player.getName());
+            // Capture sécurisée des variables locales pour la lambda
+            final JavaFXPlayer currentPlayer = player;
+            final int finalSpawnX = spawnX;
+            final int finalSpawnY = spawnY;
 
-            gameGrid.add(playerNode, spawnX, spawnY);
-            playerNodes.put(player, playerNode);
+            Platform.runLater(() -> {
+                try {
+                    // Création et ajout du node visuel
+                    StackPane playerNode = currentPlayer.createVisualRepresentation();
 
-            System.out.println("Joueur " + (i+1) + " placé en position (" + spawnX + ", " + spawnY + ")");
+                    if (playerNode == null) {
+                        System.out.println("⚠️ Node visuel NULL pour " + currentPlayer.getName() + " — IA mal initialisée ?");
+                        return;
+                    }
+
+                    // Ajouter un identifiant pour le tracking
+                    playerNode.getStyleClass().add("player-node");
+                    playerNode.setUserData("player-" + currentPlayer.getName());
+
+                    // Placement sur la grille
+                    if (gameGrid != null) {
+                        gameGrid.add(playerNode, finalSpawnX, finalSpawnY);
+                        playerNodes.put(currentPlayer, playerNode);
+                        System.out.println("✅ " + currentPlayer.getName() + " placé en (" + finalSpawnX + ", " + finalSpawnY + ")");
+                    } else {
+                        System.out.println("❌ gameGrid est null lors du placement de " + currentPlayer.getName());
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("❌ Erreur lors du placement visuel de " + currentPlayer.getName() + ": " + e.getMessage());
+                    e.printStackTrace();
+                }
+            });
         }
     }
 
@@ -898,6 +1084,11 @@ public class GameController {
 
         if (gameLoop != null) {
             gameLoop.stop();
+        }
+
+        // Arrêter toutes les IA
+        if (aiManager != null) {
+            aiManager.stopAllAI();
         }
 
         String message = winner != null ? winner.getName() + " GAGNE !" : "MATCH NUL !";

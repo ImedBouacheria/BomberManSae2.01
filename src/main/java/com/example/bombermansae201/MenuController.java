@@ -118,10 +118,10 @@ public class MenuController implements Initializable {
         if (result.isPresent()) {
             if (result.get() == onePlayer) {
                 System.out.println("🚀 Lancement du jeu avec 1 joueur + IA");
-                application.showGame(1);
+                application.showGame(1, true);
             } else if (result.get() == twoPlayers) {
                 System.out.println("🚀 Lancement du jeu avec 2 joueurs + IA");
-                application.showGame(2);
+                application.showGame(2, true);
             }
         }
     }
@@ -162,13 +162,13 @@ public class MenuController implements Initializable {
 
                 if (choice == twoPlayers) {
                     System.out.println("🚀 Lancement du jeu multijoueur avec 2 joueurs...");
-                    application.showGame(2);
+                    application.showGame(2, false);
                 } else if (choice == threePlayers) {
                     System.out.println("🚀 Lancement du jeu multijoueur avec 3 joueurs...");
-                    application.showGame(3);
+                    application.showGame(3, false);
                 } else if (choice == fourPlayers) {
                     System.out.println("🚀 Lancement du jeu multijoueur avec 4 joueurs...");
-                    application.showGame(4);
+                    application.showGame(4, false);
                 } else {
                     System.out.println("❌ Utilisateur a annulé");
                 }
