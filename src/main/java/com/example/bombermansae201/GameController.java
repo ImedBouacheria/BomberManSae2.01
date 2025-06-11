@@ -213,9 +213,8 @@ public class GameController {
         for (JavaFXPlayer player : players) {
             player.setGameMode(currentGameMode);
 
-            // En mode infini, s'assurer que les joueurs ont des bombes
+            // En mode infini, s'assurer qu'ils peuvent placer des bombes
             if (currentGameMode == GameMode.INFINITE_BOMBS) {
-                // Pas besoin de changer l'inventaire, juste s'assurer qu'ils peuvent placer des bombes
                 System.out.println("🔄 " + player.getName() + " passe en mode bombes infinies");
             } else {
                 // En mode limité, s'assurer qu'ils ont au moins quelques bombes
@@ -336,6 +335,12 @@ public class GameController {
         System.out.println("Initialisation du jeu avec " + playerCount + " joueurs et profils...");
         this.currentPlayerCount = playerCount;
 
+        // Récupérer le mode de jeu sélectionné depuis l'application
+        if (application != null) {
+            currentGameMode = application.getSelectedGameMode();
+            System.out.println("🎮 Mode de jeu récupéré: " + currentGameMode.getDisplayName());
+        }
+
         // Nettoyage des données précédentes
         cleanupGame();
 
@@ -356,6 +361,7 @@ public class GameController {
         generateInitialPowerUps();
 
         // Mise à jour des infos
+        updateGameModeDisplay();
         updatePlayerInfo();
 
         // Démarrage du jeu
@@ -481,6 +487,10 @@ public class GameController {
 
             // Configuration des touches
             player.setKeys(playerKeys[i][0], playerKeys[i][1], playerKeys[i][2], playerKeys[i][3], playerKeys[i][4]);
+
+            // IMPORTANT: Appliquer le mode de jeu
+            player.setGameMode(currentGameMode);
+
             players.add(player);
 
             System.out.println("✅ Joueur créé: " + player.getName() + " (Couleur: " + player.getColor() + ")");
@@ -633,14 +643,26 @@ public class GameController {
         double random = Math.random();
         PowerUpType typeToSpawn;
 
-        if (random < 0.4) {
-            typeToSpawn = PowerUpType.BOMB_COUNT; // 40% - Bombes (plus fréquent)
-        } else if (random < 0.7) {
-            typeToSpawn = PowerUpType.BOMB_POWER; // 30% - Puissance
-        } else if (random < 0.9) {
-            typeToSpawn = PowerUpType.SPEED; // 20% - Vitesse
+        if (currentGameMode == GameMode.INFINITE_BOMBS) {
+            // En mode infini, exclure les power-ups BOMB_COUNT
+            if (random < 0) { // 0% - Puissance
+                typeToSpawn = PowerUpType.BOMB_POWER;
+            } else if (random < 0.8) { // 30% - Vitesse
+                typeToSpawn = PowerUpType.SPEED;
+            } else { // 20% - Vie
+                typeToSpawn = PowerUpType.LIFE;
+            }
         } else {
-            typeToSpawn = PowerUpType.LIFE; // 10% - Vie (rare)
+            // Mode normal avec toutes les possibilités
+            if (random < 0.4) {
+                typeToSpawn = PowerUpType.BOMB_COUNT; // 40% - Bombes (plus fréquent)
+            } else if (random < 0.7) {
+                typeToSpawn = PowerUpType.BOMB_POWER; // 30% - Puissance
+            } else if (random < 0.9) {
+                typeToSpawn = PowerUpType.SPEED; // 20% - Vitesse
+            } else {
+                typeToSpawn = PowerUpType.LIFE; // 10% - Vie (rare)
+            }
         }
 
         generateSinglePowerUp(typeToSpawn);
@@ -1592,19 +1614,17 @@ public class GameController {
     private void loadExplosionSprites() {
         try {
             // Charger les sprites d'explosion depuis vos ressources
-            // Ajustez ces chemins selon l'organisation de vos fichiers
             String flameStartPath = "/com/example/bombermansae201/Bombe/Debut_flamme.png";
             String flameEndPath = "/com/example/bombermansae201/Bombe/Fin_flamme.png";
-            String flameCenterPath = "/com/example/bombermansae201/Bombe/Milieu_flamme.png"; // Optionnel
+            String flameCenterPath = "/com/example/bombermansae201/Bombe/Milieu_flamme.png";
 
             flameStartImage = new javafx.scene.image.Image(getClass().getResourceAsStream(flameStartPath));
             flameEndImage = new javafx.scene.image.Image(getClass().getResourceAsStream(flameEndPath));
 
-            // Si vous avez un sprite pour le centre, sinon on utilisera le sprite de début
             try {
                 flameCenterImage = new javafx.scene.image.Image(getClass().getResourceAsStream(flameCenterPath));
             } catch (Exception e) {
-                flameCenterImage = flameStartImage; // Utiliser le sprite de début comme centre
+                flameCenterImage = flameStartImage;
             }
 
             System.out.println("✅ Sprites d'explosion chargés avec succès");
@@ -1646,17 +1666,13 @@ public class GameController {
         explosionNode.setAlignment(javafx.geometry.Pos.CENTER);
 
         if (flameStartImage != null && flameEndImage != null) {
-            // Utiliser les sprites personnalisés
             createSpriteExplosionEffect(explosionNode, isCenter, direction, isEnd);
         } else {
-            // Fallback vers les formes géométriques
             createGeometricExplosionEffect(explosionNode, isCenter, direction, isEnd);
         }
 
-        // Ajouter à la grille
         gameGrid.add(explosionNode, x, y);
 
-        // Enregistrer l'effet pour le supprimer plus tard
         ExplosionEffect effect = new ExplosionEffect(x, y, System.nanoTime(), isCenter, direction, isEnd, explosionNode);
         explosionEffects.add(effect);
 
@@ -1668,38 +1684,31 @@ public class GameController {
         javafx.scene.image.ImageView flameView;
 
         if (isCenter) {
-            // Centre de l'explosion
             flameView = new javafx.scene.image.ImageView(flameCenterImage);
         } else if (isEnd) {
-            // Fin de flamme
             flameView = new javafx.scene.image.ImageView(flameEndImage);
         } else {
-            // Début/milieu de flamme
             flameView = new javafx.scene.image.ImageView(flameStartImage);
         }
 
-        // Configurer la taille de l'image
         flameView.setFitWidth(35);
         flameView.setFitHeight(35);
         flameView.setPreserveRatio(true);
         flameView.setSmooth(true);
 
-        // Rotation selon la direction
         if (direction != null) {
             switch (direction) {
-                case UP -> flameView.setRotate(270);    // ↑
-                case DOWN -> flameView.setRotate(90);   // ↓
-                case LEFT -> flameView.setRotate(180);  // ←
-                case RIGHT -> flameView.setRotate(0);   // → (pas de rotation)
+                case UP -> flameView.setRotate(270);
+                case DOWN -> flameView.setRotate(90);
+                case LEFT -> flameView.setRotate(180);
+                case RIGHT -> flameView.setRotate(0);
             }
         }
 
-        // Centrer l'image
         StackPane.setAlignment(flameView, javafx.geometry.Pos.CENTER);
 
-        // Effets visuels
         javafx.scene.effect.Glow glow = new javafx.scene.effect.Glow();
-        glow.setLevel(isCenter ? 0.8 : 0.5); // Centre plus lumineux
+        glow.setLevel(isCenter ? 0.8 : 0.5);
 
         javafx.scene.effect.DropShadow shadow = new javafx.scene.effect.DropShadow();
         shadow.setColor(javafx.scene.paint.Color.BLACK);
@@ -1707,7 +1716,6 @@ public class GameController {
         shadow.setOffsetX(1);
         shadow.setOffsetY(1);
 
-        // Combiner les effets
         javafx.scene.effect.Blend blend = new javafx.scene.effect.Blend();
         blend.setTopInput(glow);
         blend.setBottomInput(shadow);
@@ -1717,15 +1725,12 @@ public class GameController {
     }
 
     private void createGeometricExplosionEffect(StackPane container, boolean isCenter, Direction direction, boolean isEnd) {
-        // Fallback avec formes géométriques (version précédente)
         if (isCenter) {
-            // Effet du centre - explosion principale
             Circle centerExplosion = new Circle(18);
             centerExplosion.setFill(Color.ORANGE);
             centerExplosion.setStroke(Color.RED);
             centerExplosion.setStrokeWidth(3);
 
-            // Effet de lueur intense
             Glow glow = new Glow();
             glow.setLevel(0.9);
             centerExplosion.setEffect(glow);
@@ -1733,16 +1738,13 @@ public class GameController {
             container.getChildren().add(centerExplosion);
 
         } else {
-            // Effet des rayons d'explosion
             if (direction == Direction.LEFT || direction == Direction.RIGHT) {
-                // Rayon horizontal
                 Rectangle ray = new Rectangle(40, 20);
                 ray.setFill(Color.YELLOW);
                 ray.setStroke(Color.ORANGE);
                 ray.setStrokeWidth(2);
 
                 if (isEnd) {
-                    // Bout du rayon - plus petit
                     ray.setWidth(30);
                     ray.setFill(Color.LIGHTYELLOW);
                 }
@@ -1750,14 +1752,12 @@ public class GameController {
                 container.getChildren().add(ray);
 
             } else {
-                // Rayon vertical
                 Rectangle ray = new Rectangle(20, 40);
                 ray.setFill(Color.YELLOW);
                 ray.setStroke(Color.ORANGE);
                 ray.setStrokeWidth(2);
 
                 if (isEnd) {
-                    // Bout du rayon - plus petit
                     ray.setHeight(30);
                     ray.setFill(Color.LIGHTYELLOW);
                 }
@@ -1765,7 +1765,6 @@ public class GameController {
                 container.getChildren().add(ray);
             }
 
-            // Effet de brillance pour les rayons
             Glow rayGlow = new Glow();
             rayGlow.setLevel(0.6);
             container.setEffect(rayGlow);
@@ -1775,18 +1774,13 @@ public class GameController {
     private void updateExplosionEffects() {
         long currentTime = System.nanoTime();
 
-        // Supprimer les effets expirés
         explosionEffects.removeIf(effect -> {
             if (currentTime - effect.startTime >= EXPLOSION_EFFECT_DURATION) {
-                // Supprimer l'effet visuel de la grille
                 gameGrid.getChildren().remove(effect.effectNode);
-
-                // Restaurer la cellule de base
                 restoreBaseCell(effect.x, effect.y);
-
-                return true; // Supprimer de la liste
+                return true;
             }
-            return false; // Garder dans la liste
+            return false;
         });
     }
     /**
