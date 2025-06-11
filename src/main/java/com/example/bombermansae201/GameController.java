@@ -312,23 +312,6 @@ public class GameController {
         gameModeLabel = new Label("Mode: " + currentGameMode.getDisplayName());
         gameModeLabel.setStyle("-fx-text-fill: #FFAA00; -fx-font-size: 12; -fx-font-weight: bold;");
 
-        // Bouton pour changer le mode de jeu
-        toggleGameModeButton = new Button("Changer Mode");
-        toggleGameModeButton.setStyle("-fx-background-color: #0066CC; -fx-text-fill: #FFFFFF; " +
-                "-fx-border-color: #FFFFFF; -fx-border-width: 2; -fx-font-size: 10; -fx-font-weight: bold;");
-        toggleGameModeButton.setOnAction(e -> toggleGameMode());
-
-        // Effet de survol pour le bouton
-        toggleGameModeButton.setOnMouseEntered(e -> {
-            toggleGameModeButton.setStyle("-fx-background-color: #0088FF; -fx-text-fill: #FFFFFF; " +
-                    "-fx-border-color: #FFFFFF; -fx-border-width: 2; -fx-font-size: 10; -fx-font-weight: bold;");
-        });
-
-        toggleGameModeButton.setOnMouseExited(e -> {
-            toggleGameModeButton.setStyle("-fx-background-color: #0066CC; -fx-text-fill: #FFFFFF; " +
-                    "-fx-border-color: #FFFFFF; -fx-border-width: 2; -fx-font-size: 10; -fx-font-weight: bold;");
-        });
-
         // Création des labels pour les joueurs
         createPlayerLabels();
 
@@ -346,7 +329,7 @@ public class GameController {
                 titleLabel,
                 gameStatusLabel,
                 gameModeLabel,
-                toggleGameModeButton,
+                //toggleGameModeButton,
                 player1Info,
                 player2Info,
                 player3Info,
