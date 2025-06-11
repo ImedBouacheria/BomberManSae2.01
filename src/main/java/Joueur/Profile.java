@@ -1,4 +1,4 @@
-package com.example.bombermansae201;
+package Joueur;
 
 import javafx.scene.paint.Color;
 

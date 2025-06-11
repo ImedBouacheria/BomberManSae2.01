@@ -1,6 +1,9 @@
-package com.example.bombermansae201;
+package Joueur;
 
-import javafx.scene.Node;
+import Etat.Direction;
+import Etat.GameMode;
+import Etat.PowerUpType;
+import fonctionnaliteInitial.GameObject;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;

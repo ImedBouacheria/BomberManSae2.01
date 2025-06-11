@@ -1,6 +1,6 @@
-package com.example.bombermansae201;
+package Joueur;
 
-import javafx.application.Platform;
+import bombermanMain.BombermanApplication;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;

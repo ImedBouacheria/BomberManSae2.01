@@ -6,7 +6,7 @@
 <?import javafx.scene.text.Font?>
 
 <StackPane xmlns="http://javafx.com/javafx/22.0.1" xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="com.example.bombermansae201.MenuController"
+           fx:controller="MenuInterface.MenuController"
            prefWidth="1000.0" prefHeight="700.0">
 
     <!-- Fond dégradé rétro -->

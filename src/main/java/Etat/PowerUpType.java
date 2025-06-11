@@ -1,4 +1,4 @@
-package com.example.bombermansae201;
+package Etat;
 
 /**
  * Énumération représentant les différents types de power-ups

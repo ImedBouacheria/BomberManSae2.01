@@ -1,5 +1,6 @@
-package com.example.bombermansae201;
+package com.example.Parametre;
 
+import bombermanMain.BombermanApplication;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;

@@ -1,4 +1,7 @@
-package com.example.bombermansae201;
+package Test;
+
+import Joueur.Profile;
+import Joueur.ProfileManager;
 
 /**
  * Classe de test pour le système de profils

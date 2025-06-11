@@ -1,17 +1,22 @@
-package com.example.bombermansae201;
+package bombermanMain;
 
+import Etat.GameMode;
+import IABomberMan.AIManager;
+import Joueur.Profile;
+import Joueur.ProfileInterface;
+import fonctionnaliteInitial.BombermanMap;
+import fonctionnaliteInitial.GameController;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-import javafx.animation.Timeline;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

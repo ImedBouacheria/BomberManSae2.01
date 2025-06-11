@@ -1,5 +1,15 @@
-package com.example.bombermansae201;
+package fonctionnaliteInitial;
 
+import Etat.Direction;
+import Etat.GameMode;
+import Etat.GameState;
+import Etat.PowerUpType;
+import IABomberMan.AIManager;
+import Joueur.JavaFXBomb;
+import Joueur.JavaFXPlayer;
+import Joueur.Profile;
+import Joueur.ProfileManager;
+import bombermanMain.BombermanApplication;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -15,10 +25,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 import javafx.scene.effect.Glow;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.effect.Blend;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;

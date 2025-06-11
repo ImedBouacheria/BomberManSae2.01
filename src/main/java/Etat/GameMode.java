@@ -1,4 +1,4 @@
-package com.example.bombermansae201;
+package Etat;
 
 /**
  * Énumération représentant les différents modes de jeu

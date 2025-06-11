@@ -1,4 +1,6 @@
-package com.example.bombermansae201;
+package IABomberMan;
+
+import fonctionnaliteInitial.GameController;
 
 import java.util.HashMap;
 import java.util.Map;
