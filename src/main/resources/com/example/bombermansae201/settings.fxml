@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/22.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.Parametre.SettingsController">
+<BorderPane xmlns="http://javafx.com/javafx/22.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Parametre.SettingsController">
     <center>
         <VBox alignment="CENTER" spacing="40.0" style="-fx-background-color: linear-gradient(to bottom, #2E0080, #4B0080, #6A0080);">
             <children>
