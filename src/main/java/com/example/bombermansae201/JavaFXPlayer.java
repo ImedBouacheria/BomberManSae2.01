@@ -1,5 +1,8 @@
 package com.example.bombermansae201;
 
+import javafx.scene.Node;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -44,9 +47,28 @@ public class JavaFXPlayer extends GameObject {
 
     // Constantes par défaut
     private static final int DEFAULT_LIVES = 3;
-    private static final int DEFAULT_BOMB_INVENTORY = 3;
+    private static final int DEFAULT_BOMB_INVENTORY = 10;
     private static final int DEFAULT_BOMB_POWER = 2;
     private static final int DEFAULT_SPEED = 1;
+
+    // Images pour les sprites
+    private transient Image[] sprites;
+    private transient ImageView currentSprite;
+    private boolean walking = false;
+    private long lastSpriteUpdate = 0;
+    private static final long SPRITE_UPDATE_INTERVAL = 200_000_000; // 200ms pour l'animation
+
+    // Constantes pour les sprites
+    private static final String[] SPRITE_NAMES = {
+            "PersoBleu.png",           // 0 - face
+            "PersoBleuMarcheDevant.png", // 1 - face_walking
+            "PersoBleuDos.png",        // 2 - back
+            "PersoBleuMarcheDeriere.png", // 3 - back_walking
+            "PersoBleuDroite.png",     // 4 - right
+            "PersoBleuMarcheDroite.png", // 5 - right_walking
+            "PersoBleuGauche.png",     // 6 - left
+            "PersoBleuMarcheGauche.png"  // 7 - left_walking
+    };
 
     /**
      * Constructeur principal
@@ -63,10 +85,189 @@ public class JavaFXPlayer extends GameObject {
         this.score = 0;
         this.moving = false;
         this.currentDirection = Direction.DOWN;
-        this.gameMode = GameMode.LIMITED_BOMBS; // Mode par défaut
+        this.gameMode = GameMode.LIMITED_BOMBS;
+
+        loadSprites(); // Charger les sprites
 
         System.out.println("🎮 JavaFXPlayer créé: " + name + " (" + color + ", Mode: " + gameMode.getEmoji() + ")");
     }
+
+    /**
+     * Chargement des sprites avec gestion d'erreurs améliorée
+     */
+    private void loadSprites() {
+        sprites = new Image[8];
+        String colorFolder = getColorFolder();
+
+        System.out.println("🎨 Chargement des sprites pour " + name + " (couleur: " + colorFolder + ")");
+
+        boolean allSpritesLoaded = true;
+
+        for (int i = 0; i < SPRITE_NAMES.length; i++) {
+            try {
+                // Essayer différents chemins possibles
+                String[] possiblePaths = {
+                        "/com/example/bombermansae201/Personnage/" + colorFolder + "/" + SPRITE_NAMES[i],
+                        "/com/example/bombermansae201/Personnage/" + colorFolder + ".png/" + SPRITE_NAMES[i],
+                        "/Personnage/" + colorFolder + "/" + SPRITE_NAMES[i],
+                        "/sprites/" + colorFolder + "/" + SPRITE_NAMES[i]
+                };
+
+                Image loadedImage = null;
+                String usedPath = null;
+
+                for (String path : possiblePaths) {
+                    try {
+                        var stream = getClass().getResourceAsStream(path);
+                        if (stream != null) {
+                            loadedImage = new Image(stream);
+                            usedPath = path;
+                            break;
+                        }
+                    } catch (Exception e) {
+                        // Essayer le chemin suivant
+                        continue;
+                    }
+                }
+
+                if (loadedImage != null && !loadedImage.isError()) {
+                    sprites[i] = loadedImage;
+                    System.out.println("✅ Sprite " + i + " chargé: " + usedPath);
+                } else {
+                    System.err.println("❌ Impossible de charger le sprite " + i + ": " + SPRITE_NAMES[i]);
+                    allSpritesLoaded = false;
+                }
+
+            } catch (Exception e) {
+                System.err.println("❌ Erreur lors du chargement du sprite " + i + ": " + e.getMessage());
+                allSpritesLoaded = false;
+            }
+        }
+
+        if (allSpritesLoaded) {
+            currentSprite = new ImageView(sprites[0]); // Face par défaut
+            System.out.println("✅ Tous les sprites chargés pour " + name);
+        } else {
+            System.err.println("⚠️ Certains sprites n'ont pas pu être chargés pour " + name + ", utilisation du fallback");
+            sprites = null;
+            currentSprite = null;
+        }
+    }
+
+    /**
+     * Détermine le dossier de couleur basé sur la couleur du joueur
+     */
+    private String getColorFolder() {
+        if (color.equals(Color.PINK)) return "Rose";
+        else if (color.equals(Color.BLUE)) return "Bleu";
+        else if (color.equals(Color.GREEN)) return "Vert";
+        else if (color.equals(Color.ORANGE)) return "Orange";
+        else if (color.equals(Color.RED)) return "Rouge";
+        else if (color.equals(Color.YELLOW)) return "Jaune";
+        else return "Bleu"; // Fallback
+    }
+
+    /**
+     * Mise à jour du sprite en fonction de la direction et du mouvement
+     */
+    private void updateSprite() {
+        if (sprites == null || currentSprite == null) return;
+
+        long now = System.nanoTime();
+        if (moving && (now - lastSpriteUpdate > SPRITE_UPDATE_INTERVAL)) {
+            // Alterner entre sprite normal et sprite de marche
+            walking = !walking;
+            lastSpriteUpdate = now;
+        } else if (!moving && walking) {
+            // Si le joueur ne bouge plus, revenir au sprite statique
+            walking = false;
+            lastSpriteUpdate = now;
+        }
+
+        int spriteIndex = 0;
+        switch (currentDirection) {
+            case UP:
+                spriteIndex = walking ? 3 : 2; // back_walking ou back
+                break;
+            case DOWN:
+                spriteIndex = walking ? 1 : 0; // face_walking ou face
+                break;
+            case LEFT:
+                spriteIndex = walking ? 7 : 6; // left_walking ou left
+                break;
+            case RIGHT:
+                spriteIndex = walking ? 5 : 4; // right_walking ou right
+                break;
+        }
+
+        if (spriteIndex < sprites.length && sprites[spriteIndex] != null) {
+            currentSprite.setImage(sprites[spriteIndex]);
+        }
+    }
+
+    /**
+     * Création de la représentation visuelle du joueur
+     */
+    public StackPane createVisualRepresentation() {
+        StackPane playerNode = new StackPane();
+        playerNode.setPrefSize(40, 40);
+        playerNode.setMaxSize(40, 40);
+        playerNode.setMinSize(40, 40);
+
+        if (sprites == null || currentSprite == null) {
+            System.out.println("⚠️ Utilisation du fallback pour " + name);
+            // Fallback aux formes géométriques si les sprites ne sont pas chargés
+            Circle playerCircle = new Circle(18);
+            playerCircle.setFill(color);
+            playerCircle.setStroke(Color.BLACK);
+            playerCircle.setStrokeWidth(2);
+
+            if (gameMode.isInfinite()) {
+                Glow infiniteGlow = new Glow();
+                infiniteGlow.setLevel(0.6);
+                playerCircle.setEffect(infiniteGlow);
+            }
+
+            Text playerText = new Text(getPlayerNumber());
+            playerText.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+            playerText.setFill(Color.WHITE);
+
+            playerNode.getChildren().addAll(playerCircle, playerText);
+        } else {
+            System.out.println("✅ Utilisation des sprites pour " + name);
+            updateSprite();
+
+            ImageView spriteView = new ImageView();
+            spriteView.setImage(currentSprite.getImage());
+            spriteView.setFitWidth(40);
+            spriteView.setFitHeight(40);
+            spriteView.setPreserveRatio(true);
+            spriteView.setSmooth(true); // Améliore la qualité de rendu
+
+            // Ajouter un effet d'ombre
+            DropShadow shadow = new DropShadow();
+            shadow.setRadius(3);
+            shadow.setOffsetX(2);
+            shadow.setOffsetY(2);
+            spriteView.setEffect(shadow);
+
+            playerNode.getChildren().add(spriteView);
+        }
+
+        // Indicateur de mode (petit symbole)
+        Text modeIndicator = new Text(gameMode.getEmoji());
+        modeIndicator.setFont(Font.font("Arial", FontWeight.BOLD, 8));
+        modeIndicator.setTranslateX(12);
+        modeIndicator.setTranslateY(-12);
+        playerNode.getChildren().add(modeIndicator);
+
+        playerNode.getStyleClass().add("player-node");
+        playerNode.setUserData("player-" + name);
+
+        return playerNode;
+    }
+
+    // ... (reste du code inchangé pour les autres méthodes)
 
     /**
      * Définit le mode de jeu pour les bombes
@@ -120,13 +321,15 @@ public class JavaFXPlayer extends GameObject {
     public void move(Direction direction) {
         this.currentDirection = direction;
         this.moving = true;
+        this.walking = true;
+        this.lastSpriteUpdate = System.nanoTime();
+        updateSprite(); // Mettre à jour immédiatement le sprite
     }
 
-    /**
-     * Arrêt du mouvement
-     */
     public void stopMoving() {
         this.moving = false;
+        this.walking = false;
+        updateSprite(); // Mettre à jour pour afficher le sprite statique
     }
 
     /**
@@ -273,54 +476,6 @@ public class JavaFXPlayer extends GameObject {
         }
 
         System.out.println("🔄 " + name + " réinitialisé (Mode: " + gameMode.getEmoji() + ")");
-    }
-
-    /**
-     * Création de la représentation visuelle du joueur
-     */
-    public StackPane createVisualRepresentation() {
-        StackPane playerNode = new StackPane();
-        playerNode.setPrefSize(40, 40);
-        playerNode.setMaxSize(40, 40);
-        playerNode.setMinSize(40, 40);
-
-        // Cercle principal avec effet selon le mode de jeu
-        Circle playerCircle = new Circle(18);
-        playerCircle.setFill(color);
-        playerCircle.setStroke(Color.BLACK);
-        playerCircle.setStrokeWidth(2);
-
-        // Effet visuel selon le mode de jeu
-        if (gameMode.isInfinite()) {
-            Glow infiniteGlow = new Glow();
-            infiniteGlow.setLevel(0.6);
-            playerCircle.setEffect(infiniteGlow);
-        } else {
-            DropShadow normalShadow = new DropShadow();
-            normalShadow.setColor(Color.GRAY);
-            normalShadow.setRadius(3);
-            normalShadow.setOffsetX(2);
-            normalShadow.setOffsetY(2);
-            playerCircle.setEffect(normalShadow);
-        }
-
-        // Numéro du joueur
-        String playerNumber = getPlayerNumber();
-        Text playerText = new Text(playerNumber);
-        playerText.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-        playerText.setFill(Color.WHITE);
-
-        // Indicateur de mode (petit symbole)
-        Text modeIndicator = new Text(gameMode.getEmoji());
-        modeIndicator.setFont(Font.font("Arial", FontWeight.BOLD, 8));
-        modeIndicator.setTranslateX(12);
-        modeIndicator.setTranslateY(-12);
-
-        playerNode.getChildren().addAll(playerCircle, playerText, modeIndicator);
-        playerNode.getStyleClass().add("player-node");
-        playerNode.setUserData("player-" + name);
-
-        return playerNode;
     }
 
     /**
