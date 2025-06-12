@@ -5,15 +5,29 @@ import fonctionnaliteInitial.GameController;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Gère les joueurs contrôlés par l'IA dans le jeu.
+ * Cette classe permet d'ajouter, démarrer, arrêter et gérer des joueurs IA.
+ */
 public class AIManager {
     private Map<Integer, AiPlayer> aiPlayers;
     private GameController gameController;
 
+    /**
+     * Crée un nouveau gestionnaire d'IA avec le contrôleur de jeu spécifié.
+     * 
+     * @param gameController le contrôleur de jeu utilisé par les IA
+     */
     public AIManager(GameController gameController) {
         this.gameController = gameController;
         this.aiPlayers = new HashMap<>();
     }
 
+    /**
+     * Ajoute un joueur IA avec l'identifiant spécifié.
+     * 
+     * @param playerId l'identifiant unique du joueur à contrôler par l'IA
+     */
     public void addAIPlayer(int playerId) {
         AiPlayer aiPlayer = new AiPlayer(playerId, gameController);
         aiPlayers.put(playerId, aiPlayer);

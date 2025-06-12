@@ -9,10 +9,21 @@ import javafx.scene.effect.Glow;
 import javafx.geometry.Pos;
 import java.util.Random;
 
+/**
+ * Classe représentant la carte du jeu Bomberman.
+ * <p>
+ * Cette classe gère la génération et la représentation visuelle de la carte de jeu,
+ * incluant les murs fixes, les blocs destructibles, les zones de spawn et les cellules vides.
+ * Elle supporte également plusieurs thèmes visuels qui peuvent être changés dynamiquement.
+ * </p>
+ */
 public class BombermanMap {
 
+    /** Largeur de la grille de jeu en nombre de cellules */
     private static final int GRID_WIDTH = 15;
+    /** Hauteur de la grille de jeu en nombre de cellules */
     private static final int GRID_HEIGHT = 13;
+    /** Taille d'une cellule en pixels */
     private static final int CELL_SIZE = 40;
 
     // Palette de couleurs rétro classique
@@ -39,9 +50,16 @@ public class BombermanMap {
     private static final int DESTRUCTIBLE = 2;
     private static final int SPAWN_ZONE = 3;
 
+    /** Générateur de nombres aléatoires pour la génération de carte */
     private Random random = new Random();
 
-    // Carte de base avec structure fixe
+    /**
+     * Structure de base de la carte avec les murs fixes et les zones de spawn.
+     * <p>
+     * Cette matrice 2D définit la disposition fondamentale du terrain de jeu :
+     * 1 = mur indestructible, 3 = zone de spawn, 0 = espace vide
+     * </p>
+     */
     private int[][] baseMap = {
             {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
             {1,3,0,0,0,0,0,0,0,0,0,0,0,3,1},
@@ -57,7 +75,13 @@ public class BombermanMap {
             {1,3,0,0,0,0,0,0,0,0,0,0,0,3,1},
             {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
     };
-
+    /**
+     * Carte de jeu actuellement utilisée.
+     * <p>
+     * Cette matrice contient l'état actuel de la carte, incluant les blocs
+     * destructibles générés aléatoirement.
+     * </p>
+     */
     private int[][] gameMap;
 
     public void generateRandomMap() {
@@ -82,14 +106,33 @@ public class BombermanMap {
             }
         }
     }
-
+    /**
+     * Énumération définissant les thèmes visuels disponibles pour la carte.
+     */
     public enum Theme {
         CLASSIC,
         PIRATE
     }
-
+    /**
+     * Génère une carte aléatoire avec des blocs destructibles.
+     * <p>
+     * Cette méthode remplit la carte de jeu avec des blocs destructibles
+     * placés aléatoirement, tout en préservant les zones de spawn et
+     * les murs indestructibles.
+     * </p>
+     */
     private static Theme currentTheme = Theme.CLASSIC;
-
+    /**
+     * Vérifie si une position est proche d'une zone de spawn.
+     * <p>
+     * Cette méthode est utilisée lors de la génération de la carte pour éviter
+     * de bloquer les joueurs dans leurs zones de spawn.
+     * </p>
+     *
+     * @param row Ligne dans la grille
+     * @param col Colonne dans la grille
+     * @return true si la position est adjacente à une zone de spawn, false sinon
+     */
     private boolean isNearSpawn(int row, int col) {
         // Zones de spawn aux 4 coins
         if ((row <= 2 && col <= 2)) return true;
@@ -99,16 +142,35 @@ public class BombermanMap {
 
         return false;
     }
-
+    /**
+     * Change le thème visuel de la carte.
+     * <p>
+     * Cette méthode statique permet de basculer entre les différents thèmes
+     * disponibles pour l'apparence de la carte.
+     * </p>
+     *
+     * @param theme Le nouveau thème à appliquer
+     */
     public static void setTheme(Theme theme) {
         currentTheme = theme;
     }
-
+    /**
+     * Obtient le thème actuellement utilisé.
+     *
+     * @return Le thème actuel
+     */
     public static Theme getCurrentTheme() {
         return currentTheme;
     }
 
-    // Méthodes principales avec les noms originaux
+    /**
+     * Crée une représentation visuelle d'une cellule vide.
+     * <p>
+     * L'apparence dépend du thème actuel.
+     * </p>
+     *
+     * @return Un conteneur StackPane avec la représentation de la cellule
+     */
     public StackPane createRetroEmptyCell() {
         if (currentTheme == Theme.PIRATE) {
             StackPane container = new StackPane();
@@ -157,7 +219,14 @@ public class BombermanMap {
             return container;
         }
     }
-
+    /**
+     * Crée une représentation visuelle d'un mur indestructible.
+     * <p>
+     * L'apparence dépend du thème actuel.
+     * </p>
+     *
+     * @return Un conteneur StackPane avec la représentation du mur
+     */
     public StackPane createRetroWallCell() {
         if (currentTheme == Theme.PIRATE) {
             StackPane container = new StackPane();
@@ -248,7 +317,14 @@ public class BombermanMap {
             return container;
         }
     }
-
+    /**
+     * Crée une représentation visuelle d'un bloc destructible.
+     * <p>
+     * L'apparence dépend du thème actuel.
+     * </p>
+     *
+     * @return Un conteneur StackPane avec la représentation du bloc destructible
+     */
     public StackPane createRetroDestructibleCell() {
         if (currentTheme == Theme.PIRATE) {
             StackPane container = new StackPane();
@@ -329,7 +405,14 @@ public class BombermanMap {
             return container;
         }
     }
-
+    /**
+     * Crée une représentation visuelle d'une zone de spawn.
+     * <p>
+     * L'apparence dépend du thème actuel.
+     * </p>
+     *
+     * @return Un conteneur StackPane avec la représentation de la zone de spawn
+     */
     public StackPane createRetroSpawnZoneCell() {
         StackPane container = new StackPane();
         container.setPrefSize(CELL_SIZE, CELL_SIZE);
@@ -390,33 +473,64 @@ public class BombermanMap {
         container.getChildren().addAll(floor, spawnCircle, star, pixel1, pixel2, pixel3, pixel4);
         return container;
     }
-
-    // Getters et setters
+    /**
+     * Obtient la carte de jeu actuelle.
+     *
+     * @return La matrice 2D représentant la carte
+     */
     public int[][] getGameMap() {
         return gameMap;
     }
-
+    /**
+     * Modifie la valeur d'une cellule dans la carte.
+     * <p>
+     * Cette méthode est utilisée pour mettre à jour l'état de la carte,
+     * par exemple lorsqu'un bloc destructible est détruit.
+     * </p>
+     *
+     * @param x Coordonnée X dans la grille
+     * @param y Coordonnée Y dans la grille
+     * @param value Nouvelle valeur pour la cellule
+     */
     public void setCell(int x, int y, int value) {
         if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
             gameMap[y][x] = value;
         }
     }
-
+    /**
+     * Obtient la valeur d'une cellule dans la carte.
+     *
+     * @param x Coordonnée X dans la grille
+     * @param y Coordonnée Y dans la grille
+     * @return La valeur de la cellule (EMPTY, WALL, DESTRUCTIBLE ou SPAWN_ZONE)
+     */
     public int getCell(int x, int y) {
         if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
             return gameMap[y][x];
         }
         return -1; // Valeur invalide
     }
-
+    /**
+     * Obtient la largeur de la grille.
+     *
+     * @return Largeur de la grille en nombre de cellules
+     */
     public int getGridWidth() {
         return GRID_WIDTH;
     }
-
+    /**
+     * Obtient la hauteur de la grille.
+     *
+     * @return Hauteur de la grille en nombre de cellules
+     */
     public int getGridHeight() {
         return GRID_HEIGHT;
     }
-
+    /**
+     * Obtient la taille d'une cellule.
+     *
+     * @return Taille d'une cellule en pixels
+     */
     public int getCellSize() {
         return CELL_SIZE;
     }
