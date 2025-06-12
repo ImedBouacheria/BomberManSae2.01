@@ -37,6 +37,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Contrôleur principal du jeu Bomberman.
+ * <p>
+ * Cette classe est responsable de la gestion du déroulement du jeu, incluant
+ * l'initialisation de la partie, la gestion des joueurs, le traitement des entrées
+ * utilisateur, la gestion des collisions, des power-ups et des événements de jeu.
+ * </p>
+ * <p>
+ * Le GameController fait le lien entre l'interface graphique et la logique du jeu.
+ * Il interagit avec les différents éléments du jeu comme la carte, les joueurs,
+ * les IA et les power-ups.
+ * </p>
+ */
+
+
 public class GameController {
 
     // Composants UI
@@ -115,6 +130,15 @@ public class GameController {
         };
     }
 
+    /**
+     * Définit l'application principale associée à ce contrôleur.
+     * <p>
+     * Cette référence permet au contrôleur de communiquer avec l'application
+     * principale pour les changements de scène et autres interactions.
+     * </p>
+     *
+     * @param application L'instance de BombermanApplication
+     */
     public void setApplication(BombermanApplication app) {
         this.application = app;
         // Récupérer immédiatement le mode de jeu sélectionné
@@ -123,7 +147,15 @@ public class GameController {
             System.out.println("🎮 Mode de jeu configuré dans GameController: " + currentGameMode.getDisplayName());
         }
     }
-
+    /**
+     * Crée la scène de jeu principale.
+     * <p>
+     * Cette méthode initialise l'interface graphique du jeu avec la grille,
+     * les joueurs, et tous les éléments visuels nécessaires.
+     * </p>
+     *
+     * @return Un BorderPane contenant tous les éléments de l'interface de jeu
+     */
     public BorderPane createGameScene() {
         BorderPane root = new BorderPane();
 
@@ -150,7 +182,12 @@ public class GameController {
     // ===== NOUVELLES MÉTHODES POUR L'IA =====
 
     /**
-     * Définit le gestionnaire d'IA
+     * Définit le gestionnaire d'IA pour ce contrôleur.
+     * <p>
+     * Le gestionnaire d'IA est utilisé pour contrôler les joueurs non-humains.
+     * </p>
+     *
+     * @param aiManager Le gestionnaire d'intelligence artificielle
      */
     public void setAIManager(AIManager aiManager) {
         this.aiManager = aiManager;
@@ -484,9 +521,15 @@ public class GameController {
         System.out.println("=====================================");
     }
 
-
     /**
-     * Initialise le jeu avec les profils sélectionnés
+     * Initialise une nouvelle partie avec les profils sélectionnés.
+     * <p>
+     * Configure les joueurs, la carte et les autres éléments nécessaires
+     * pour démarrer une partie.
+     * </p>
+     *
+     * @param playerCount Nombre de joueurs humains
+     * @param selectedProfiles Liste des profils sélectionnés pour les joueurs
      */
     public void initializeGameWithProfiles(int playerCount, List<Profile> selectedProfiles) {
         System.out.println("Initialisation du jeu avec " + playerCount + " joueurs et profils...");
@@ -915,7 +958,16 @@ public class GameController {
             }
         }
     }
-
+    /**
+     * Gère la collecte d'un power-up par un joueur.
+     * <p>
+     * Cette méthode est appelée lorsqu'un joueur entre en collision avec un power-up.
+     * Elle applique l'effet du power-up au joueur et le retire de la carte.
+     * </p>
+     *
+     * @param player Le joueur qui collecte le power-up
+     * @param powerUp Le power-up collecté
+     */
     private void collectPowerUp(JavaFXPlayer player, PowerUp powerUp) {
         System.out.println(player.getName() + " collecte un power-up " + powerUp.getType());
 
@@ -1360,9 +1412,15 @@ public class GameController {
             application.showMenu();
         }
     }
-
-
-
+    /**
+     * Gère les événements de touche enfoncée.
+     * <p>
+     * Cette méthode traite les entrées clavier des joueurs pour les mouvements,
+     * le placement de bombes et autres actions.
+     * </p>
+     *
+     * @param event L'événement de touche enfoncée
+     */
     public void handleKeyPressed(KeyEvent event) {
         if (currentState != GameState.PLAYING) return;
 
@@ -1421,7 +1479,15 @@ public class GameController {
             }
         }
     }
-
+    /**
+     * Gère les événements de touche relâchée.
+     * <p>
+     * Cette méthode est utilisée pour arrêter les mouvements des joueurs
+     * lorsque les touches directionnelles sont relâchées.
+     * </p>
+     *
+     * @param event L'événement de touche relâchée
+     */
     public void handleKeyReleased(KeyEvent event) {
         pressedKeys.remove(event.getCode());
     }
@@ -1507,8 +1573,16 @@ public class GameController {
         // Restaurer la cellule de base à l'ancienne position
         restoreBaseCell(player.getGridX(), player.getGridY());
     }
-
-
+    /**
+     * Restaure une cellule de la grille à son état de base.
+     * <p>
+     * Cette méthode est appelée après qu'un power-up a été collecté
+     * pour restaurer la cellule à son apparence normale.
+     * </p>
+     *
+     * @param x Coordonnée X de la cellule
+     * @param y Coordonnée Y de la cellule
+     */
     private void restoreBaseCell(int x, int y) {
         // Vérifier qu'il n'y a pas d'autres éléments importants à cette position
         boolean hasOtherElements = players.stream()

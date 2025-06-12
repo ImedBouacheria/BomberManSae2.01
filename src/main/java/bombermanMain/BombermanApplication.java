@@ -21,15 +21,44 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Classe principale de l'application Bomberman.
+ * <p>
+ * Cette classe gère l'interface utilisateur principale du jeu, incluant le menu principal,
+ * les paramètres, la sélection des profils et le lancement des différents modes de jeu.
+ * Elle orchestre l'interaction entre les différents composants du jeu comme le contrôleur,
+ * les profils et l'intelligence artificielle.
+ * </p>
+ */
 public class BombermanApplication extends Application {
 
+    /** Stage principal de l'application */
     private Stage primaryStage;
+    
+    /** Contrôleur principal du jeu */
     private GameController gameController;
-    private GameMode selectedGameMode = GameMode.LIMITED_BOMBS; // Mode par défaut
+    
+    /** Mode de jeu sélectionné, par défaut limité en bombes */
+    private GameMode selectedGameMode = GameMode.LIMITED_BOMBS;
+    
+    /** Interface de gestion des profils */
     private ProfileInterface profileInterface;
-    private List<Profile> selectedProfiles; // Profils sélectionnés pour la partie
+    
+    /** Liste des profils sélectionnés pour la partie courante */
+    private List<Profile> selectedProfiles;
+    
+    /** Gestionnaire de l'intelligence artificielle */
     private AIManager aiManager;
 
+    /**
+     * Point d'entrée de l'application JavaFX.
+     * <p>
+     * Initialise la fenêtre principale, le contrôleur de jeu et l'interface des profils,
+     * puis affiche le menu principal.
+     * </p>
+     * 
+     * @param primaryStage Stage principal de l'application
+     */
     @Override
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
@@ -48,14 +77,31 @@ public class BombermanApplication extends Application {
         showMainMenu();
     }
 
+    /**
+     * Affiche le menu principal de l'application.
+     * <p>
+     * Cette méthode est utilisée pour retourner au menu principal depuis d'autres écrans.
+     * </p>
+     */
     public void showMenu() {
         showMainMenu();
     }
 
+    /**
+     * Retourne le stage principal de l'application.
+     * 
+     * @return Le stage principal
+     */
     public Stage getPrimaryStage() {
         return primaryStage;
     }
 
+    /**
+     * Affiche l'écran des paramètres du jeu.
+     * <p>
+     * Permet de modifier des options comme le thème visuel du jeu.
+     * </p>
+     */
     public void showSettings() {
         VBox settingsLayout = new VBox(20);
         settingsLayout.setAlignment(Pos.CENTER);
@@ -93,6 +139,13 @@ public class BombermanApplication extends Application {
         primaryStage.setScene(settingsScene);
     }
 
+    /**
+     * Crée un bouton de sélection de thème pour l'écran des paramètres.
+     * 
+     * @param text Le texte à afficher sur le bouton
+     * @param theme Le thème associé au bouton
+     * @return Un bouton configuré pour changer le thème
+     */
     private Button createThemeButton(String text, BombermanMap.Theme theme) {
         Button button = new Button(text);
         button.setPrefSize(200, 80);
@@ -125,17 +178,33 @@ public class BombermanApplication extends Application {
         return button;
     }
 
+    /**
+     * Ferme l'application.
+     */
     public void exitGame() {
         System.exit(0);
     }
 
     /**
-     * Affiche l'interface des profils
+     * Affiche l'interface de gestion des profils de joueurs.
+     * <p>
+     * Permet de créer, modifier ou supprimer des profils de joueurs.
+     * </p>
      */
     public void showProfiles() {
         profileInterface.showProfileMainPage();
     }
 
+    /**
+     * Lance une partie de jeu avec le nombre spécifié de joueurs.
+     * <p>
+     * Configure la scène de jeu, initialise les contrôles et démarre le jeu.
+     * Si le mode IA est activé, configure également les joueurs contrôlés par l'IA.
+     * </p>
+     * 
+     * @param playerCount Nombre de joueurs humains
+     * @param isAIMode Indique si des joueurs IA doivent être ajoutés
+     */
     public void showGame(int playerCount, boolean isAIMode) {
         System.out.println("🎮 Lancement du jeu avec " + playerCount + " joueurs en mode " + selectedGameMode.getDisplayName());
 
@@ -194,7 +263,13 @@ public class BombermanApplication extends Application {
     }
 
     /**
-     * Sélectionne les profils pour chaque joueur
+     * Sélectionne les profils pour chaque joueur participant à la partie.
+     * <p>
+     * Pour chaque joueur, permet de choisir un profil existant ou d'utiliser
+     * des paramètres par défaut.
+     * </p>
+     * 
+     * @param playerCount Nombre de joueurs pour lesquels sélectionner un profil
      */
     private void selectProfilesForPlayers(int playerCount) {
         String[] defaultPlayerNames = {"Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4"};
@@ -219,6 +294,13 @@ public class BombermanApplication extends Application {
         }
     }
 
+    /**
+     * Affiche le menu principal du jeu.
+     * <p>
+     * Crée l'interface utilisateur du menu principal avec tous les boutons
+     * et options disponibles.
+     * </p>
+     */
     private void showMainMenu() {
         VBox root = new VBox(25); // Espacement réduit pour faire place aux nouveaux éléments
         root.setAlignment(Pos.CENTER);
@@ -271,6 +353,14 @@ public class BombermanApplication extends Application {
         System.out.println("✅ Menu principal affiché");
     }
 
+    /**
+     * Crée le sélecteur de mode de jeu pour le menu principal.
+     * <p>
+     * Permet de basculer entre les différents modes de jeu disponibles.
+     * </p>
+     * 
+     * @return Un conteneur VBox avec les éléments du sélecteur de mode
+     */
     private VBox createModeSelector() {
         VBox modeContainer = new VBox(10);
         modeContainer.setAlignment(Pos.CENTER);
@@ -331,6 +421,12 @@ public class BombermanApplication extends Application {
         return modeContainer;
     }
 
+    /**
+     * Crée un bouton stylisé pour le menu principal.
+     * 
+     * @param text Le texte à afficher sur le bouton
+     * @return Un bouton configuré avec le style du menu
+     */
     private Button createButton(String text) {
         Button button = new Button(text);
         button.setPrefSize(300, 50); // Hauteur réduite
@@ -349,12 +445,20 @@ public class BombermanApplication extends Application {
         return button;
     }
 
+    /**
+     * Configure le mode IA avec le nombre spécifié de joueurs humains.
+     * <p>
+     * Ajoute des joueurs IA pour compléter jusqu'à 4 joueurs au total.
+     * </p>
+     * 
+     * @param humanPlayers Nombre de joueurs humains
+     */
     private void setupAIMode(int humanPlayers) {
         System.out.println("🤖 Configuration du mode IA avec " + humanPlayers + " joueurs humains");
 
         int totalPlayers = 4; // On veut toujours 4 joueurs au total
 
-        for (int i = humanPlayers; i < totalPlayers; i++) { // 🔍 CORRECTION ici
+        for (int i = humanPlayers; i < totalPlayers; i++) {
             aiManager.addAIPlayer(i);
             System.out.println("🤖 Joueur " + i + " configuré comme IA");
         }
@@ -371,6 +475,12 @@ public class BombermanApplication extends Application {
         });
     }
 
+    /**
+     * Lance le mode multijoueur avec sélection du nombre de joueurs.
+     * <p>
+     * Affiche une boîte de dialogue permettant de choisir le nombre de joueurs.
+     * </p>
+     */
     private void launchMultiplayerMode() {
         System.out.println("🚀 launchMultiplayerMode() appelée avec mode: " + selectedGameMode.getDisplayName());
 
@@ -406,6 +516,13 @@ public class BombermanApplication extends Application {
         }
     }
 
+    /**
+     * Lance le mode contre IA avec sélection du nombre de joueurs humains.
+     * <p>
+     * Affiche une boîte de dialogue permettant de choisir le nombre de joueurs humains,
+     * le reste étant contrôlé par l'IA.
+     * </p>
+     */
     private void launchAIMode() {
         System.out.println("🤖 launchAIMode() appelée");
 
@@ -441,7 +558,12 @@ public class BombermanApplication extends Application {
         }
     }
 
-
+    /**
+     * Affiche une boîte de dialogue d'alerte avec un titre et un message.
+     * 
+     * @param title Titre de l'alerte
+     * @param message Message à afficher
+     */
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -450,20 +572,38 @@ public class BombermanApplication extends Application {
         alert.showAndWait();
     }
 
-    // Getter pour le mode de jeu sélectionné
+    /**
+     * Retourne le mode de jeu actuellement sélectionné.
+     * 
+     * @return Le mode de jeu sélectionné
+     */
     public GameMode getSelectedGameMode() {
         return selectedGameMode;
     }
 
-    // Getters pour accès aux composants
+    /**
+     * Retourne l'interface de gestion des profils.
+     * 
+     * @return L'interface de gestion des profils
+     */
     public ProfileInterface getProfileInterface() {
         return profileInterface;
     }
 
+    /**
+     * Retourne la liste des profils sélectionnés pour la partie courante.
+     * 
+     * @return Liste des profils sélectionnés
+     */
     public List<Profile> getSelectedProfiles() {
         return selectedProfiles;
     }
 
+    /**
+     * Point d'entrée principal de l'application.
+     * 
+     * @param args Arguments de ligne de commande (non utilisés)
+     */
     public static void main(String[] args) {
         launch(args);
     }

@@ -9,19 +9,47 @@ import javafx.util.Duration;
 import java.util.Random;
 import java.util.List;
 
+/**
+ * Classe représentant un joueur contrôlé par l'intelligence artificielle.
+ * <p>
+ * Cette classe implémente le comportement d'un joueur IA qui peut se déplacer de façon autonome,
+ * poser des bombes et réagir à son environnement dans le jeu Bomberman.
+ * </p>
+ */
 public class AiPlayer {
+    /** Identifiant unique du joueur IA */
     private int playerId;
+    
+    /** Contrôleur de jeu permettant d'interagir avec le monde du jeu */
     private GameController gameController;
+    
+    /** Générateur de nombres aléatoires pour les décisions de l'IA */
     private Random random;
+    
+    /** Timeline contrôlant les actions périodiques de l'IA */
     private Timeline aiTimeline;
+    
+    /** Indique si l'IA est actuellement active */
     private boolean isActive;
+    
+    /** Indique si l'IA vient de poser une bombe (pour déclencher une fuite) */
     private boolean justPlacedBomb = false;
 
-    // Paramètres de comportement IA
-    private static final double MOVE_PROBABILITY = 0.9;  // 90% de chance de bouger
-    private static final double BOMB_PROBABILITY = 0.1;  // 10% de chance de poser une bombe
-    private static final double ACTION_INTERVAL = 800;   // Action toutes les 800ms
+    /** Probabilité que l'IA décide de se déplacer (90%) */
+    private static final double MOVE_PROBABILITY = 0.9;
+    
+    /** Probabilité que l'IA décide de poser une bombe (10%) */
+    private static final double BOMB_PROBABILITY = 0.1;
+    
+    /** Intervalle de base entre deux actions de l'IA (en millisecondes) */
+    private static final double ACTION_INTERVAL = 800;
 
+    /**
+     * Constructeur de la classe AiPlayer.
+     * 
+     * @param playerId Identifiant unique du joueur contrôlé par l'IA
+     * @param gameController Contrôleur de jeu utilisé pour interagir avec l'environnement
+     */
     public AiPlayer(int playerId, GameController gameController) {
         this.playerId = playerId;
         this.gameController = gameController;
@@ -31,6 +59,9 @@ public class AiPlayer {
         initializeAI();
     }
 
+    /**
+     * Initialise la timeline qui contrôlera les actions périodiques de l'IA.
+     */
     private void initializeAI() {
         aiTimeline = new Timeline(new KeyFrame(
                 Duration.millis(ACTION_INTERVAL + random.nextInt(400)),
@@ -39,6 +70,13 @@ public class AiPlayer {
         aiTimeline.setCycleCount(Timeline.INDEFINITE);
     }
 
+    /**
+     * Démarre l'exécution de l'IA.
+     * <p>
+     * L'IA commencera à prendre des décisions et à effectuer des actions
+     * de manière autonome à intervalles réguliers.
+     * </p>
+     */
     public void startAI() {
         if (isActive && aiTimeline != null) {
             aiTimeline.play();
@@ -46,6 +84,12 @@ public class AiPlayer {
         }
     }
 
+    /**
+     * Arrête l'exécution de l'IA.
+     * <p>
+     * L'IA cessera de prendre des décisions et d'effectuer des actions.
+     * </p>
+     */
     public void stopAI() {
         if (aiTimeline != null) {
             aiTimeline.stop();
@@ -54,6 +98,13 @@ public class AiPlayer {
         System.out.println("🛑 IA Joueur " + playerId + " désactivée");
     }
 
+    /**
+     * Effectue un mouvement d'évasion lorsque l'IA est en danger.
+     * <p>
+     * Cette méthode est notamment utilisée après avoir posé une bombe pour
+     * s'éloigner de la zone de danger.
+     * </p>
+     */
     private void performEscapeMovement() {
         JavaFXPlayer aiPlayer = gameController.getPlayerById(playerId);
 
@@ -82,6 +133,13 @@ public class AiPlayer {
         }
     }
 
+    /**
+     * Méthode principale qui détermine et exécute l'action de l'IA.
+     * <p>
+     * Cette méthode est appelée périodiquement par la timeline et constitue
+     * le cœur du comportement de l'IA.
+     * </p>
+     */
     private void performAIAction() {
         if (!isActive || gameController == null) {
             return;
@@ -109,7 +167,12 @@ public class AiPlayer {
         }
     }
 
-    // ✅ Nouveau : IA choisit seulement des directions valides
+    /**
+     * Effectue un mouvement intelligent en choisissant une direction sûre.
+     * <p>
+     * L'IA sélectionne aléatoirement une direction parmi celles qui ne sont pas bloquées.
+     * </p>
+     */
     private void performSmartMovement() {
         JavaFXPlayer aiPlayer = gameController.getPlayerById(playerId);
 
@@ -139,12 +202,22 @@ public class AiPlayer {
         }
     }
 
+    /**
+     * Fait poser une bombe par l'IA et marque l'état pour déclencher une fuite.
+     */
     private void placeBomb() {
         gameController.handleAIBombPlacement(playerId);
         justPlacedBomb = true; // 🔍 Signale qu'une bombe a été posée pour fuir ensuite
         System.out.println("💣 Joueur " + playerId + " pose une bombe");
     }
 
+    /**
+     * Ajuste l'intervalle avant la prochaine action de l'IA.
+     * <p>
+     * Introduit une variation aléatoire dans le timing des actions pour
+     * rendre le comportement moins prévisible.
+     * </p>
+     */
     private void adjustNextActionDelay() {
         double newInterval = ACTION_INTERVAL + random.nextInt(600) - 300;
         newInterval = Math.max(300, newInterval);
@@ -158,10 +231,20 @@ public class AiPlayer {
         aiTimeline.play();
     }
 
+    /**
+     * Vérifie si l'IA est actuellement active.
+     * 
+     * @return true si l'IA est active, false sinon
+     */
     public boolean isActive() {
         return isActive;
     }
 
+    /**
+     * Retourne l'identifiant du joueur contrôlé par cette IA.
+     * 
+     * @return L'identifiant unique du joueur
+     */
     public int getPlayerId() {
         return playerId;
     }
