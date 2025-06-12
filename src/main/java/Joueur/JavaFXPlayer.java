@@ -16,65 +16,187 @@ import javafx.scene.text.Text;
 import javafx.scene.effect.Glow;
 import javafx.scene.effect.DropShadow;
 
+/**
+ * Classe représentant un joueur dans le jeu Bomberman.
+ * <p>
+ * Cette classe gère tous les aspects d'un joueur dans le jeu, notamment :
+ * <ul>
+ *   <li>Les informations personnelles (nom, couleur)</li>
+ *   <li>Les statistiques de jeu (vies, bombes, puissance, vitesse, score)</li>
+ *   <li>Le mode de jeu pour les bombes (limité ou infini)</li>
+ *   <li>La position et le spawn du joueur</li>
+ *   <li>Les contrôles clavier</li>
+ *   <li>La représentation visuelle et l'animation</li>
+ *   <li>La gestion des power-ups et des dégâts</li>
+ * </ul>
+ * <p>
+ * La classe utilise des sprites pour l'affichage du joueur avec des animations
+ * de marche dans les quatre directions. Si les sprites ne sont pas disponibles,
+ * un système de fallback utilisant des formes géométriques est implémenté.
+ * 
+ * @author [Auteur]
+ * @version 1.0
+ */
 public class JavaFXPlayer extends GameObject {
 
-    // Informations du joueur
+    /**
+     * Nom du joueur.
+     */
     private String name;
+    
+    /**
+     * Couleur du joueur, utilisée pour l'identification visuelle.
+     */
     private Color color;
+    
+    /**
+     * État de vie du joueur (true = vivant, false = mort).
+     */
     private boolean alive;
+    
+    /**
+     * Nombre de vies restantes du joueur.
+     */
     private int lives;
 
-    // Statistiques de jeu
+    /**
+     * Nombre de bombes dans l'inventaire du joueur.
+     * Pertinent uniquement en mode de jeu limité.
+     */
     private int bombInventory;
+    
+    /**
+     * Puissance des bombes, détermine la portée de l'explosion.
+     */
     private int bombPower;
+    
+    /**
+     * Vitesse de déplacement du joueur.
+     */
     private int speed;
+    
+    /**
+     * Score accumulé par le joueur.
+     */
     private int score;
 
-    // Mode de jeu pour les bombes
+    /**
+     * Mode de jeu pour les bombes (limité ou infini).
+     * @see Etat.GameMode
+     */
     private GameMode gameMode;
 
-    // Position de spawn
+    /**
+     * Coordonnée X de la position de spawn du joueur.
+     */
     private int spawnX;
+    
+    /**
+     * Coordonnée Y de la position de spawn du joueur.
+     */
     private int spawnY;
 
-    // Contrôles
+    /**
+     * Touche pour se déplacer vers le haut.
+     */
     private KeyCode upKey;
+    
+    /**
+     * Touche pour se déplacer vers le bas.
+     */
     private KeyCode downKey;
+    
+    /**
+     * Touche pour se déplacer vers la gauche.
+     */
     private KeyCode leftKey;
+    
+    /**
+     * Touche pour se déplacer vers la droite.
+     */
     private KeyCode rightKey;
+    
+    /**
+     * Touche pour placer une bombe.
+     */
     private KeyCode bombKey;
 
-    // État du mouvement
+    /**
+     * Direction actuelle du joueur.
+     * @see Etat.Direction
+     */
     private Direction currentDirection;
+    
+    /**
+     * Indique si le joueur est en mouvement.
+     */
     private boolean moving;
 
-    // Constantes par défaut
+    /**
+     * Nombre de vies par défaut pour un nouveau joueur.
+     */
     private static final int DEFAULT_LIVES = 3;
+    
+    /**
+     * Nombre de bombes par défaut dans l'inventaire.
+     */
     private static final int DEFAULT_BOMB_INVENTORY = 10;
+    
+    /**
+     * Puissance de bombe par défaut.
+     */
     private static final int DEFAULT_BOMB_POWER = 2;
+    
+    /**
+     * Vitesse par défaut.
+     */
     private static final int DEFAULT_SPEED = 1;
 
-    // Images pour les sprites
+    /**
+     * Tableau contenant les images des sprites du joueur.
+     */
     private transient Image[] sprites;
+    
+    /**
+     * Sprite actuellement affiché.
+     */
     private transient ImageView currentSprite;
-    private boolean walking = false;
-    private long lastSpriteUpdate = 0;
-    private static final long SPRITE_UPDATE_INTERVAL = 200_000_000; // 200ms pour l'animation
+    
+    /**
+     * Indique si le joueur est en train de marcher (pour l'animation).
+     */
+    private boolean walking;
+    
+    /**
+     * Timestamp de la dernière mise à jour de sprite.
+     */
+    private long lastSpriteUpdate;
+    
+    /**
+     * Intervalle entre les changements de sprites pendant l'animation (en nanosecondes).
+     */
+    private static final long SPRITE_UPDATE_INTERVAL = 200_000_000; // 200ms
 
-    // Constantes pour les sprites
+    /**
+     * Noms des fichiers de sprites pour les différentes animations.
+     */
     private static final String[] SPRITE_NAMES = {
-            "PersoBleu.png",           // 0 - face
+            "PersoBleu.png",             // 0 - face
             "PersoBleuMarcheDevant.png", // 1 - face_walking
-            "PersoBleuDos.png",        // 2 - back
-            "PersoBleuMarcheDeriere.png", // 3 - back_walking
-            "PersoBleuDroite.png",     // 4 - right
+            "PersoBleuDos.png",          // 2 - back
+            "PersoBleuMarcheDeriere.png",// 3 - back_walking
+            "PersoBleuDroite.png",       // 4 - right
             "PersoBleuMarcheDroite.png", // 5 - right_walking
-            "PersoBleuGauche.png",     // 6 - left
+            "PersoBleuGauche.png",       // 6 - left
             "PersoBleuMarcheGauche.png"  // 7 - left_walking
     };
 
     /**
-     * Constructeur principal
+     * Constructeur principal du joueur.
+     * Initialise un nouveau joueur avec des valeurs par défaut et charge les sprites.
+     *
+     * @param name  Nom du joueur
+     * @param color Couleur du joueur
      */
     public JavaFXPlayer(String name, Color color) {
         super(0, 0);
@@ -96,7 +218,10 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Chargement des sprites avec gestion d'erreurs améliorée
+     * Charge les sprites du joueur depuis les ressources.
+     * <p>
+     * Cette méthode essaie de charger les sprites à partir de différents chemins possibles
+     * et implémente un système de fallback en cas d'échec.
      */
     private void loadSprites() {
         sprites = new Image[8];
@@ -158,7 +283,9 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Détermine le dossier de couleur basé sur la couleur du joueur
+     * Détermine le dossier de sprites à utiliser en fonction de la couleur du joueur.
+     *
+     * @return Nom du dossier correspondant à la couleur
      */
     private String getColorFolder() {
         if (color.equals(Color.PINK)) return "Rose";
@@ -171,7 +298,8 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Mise à jour du sprite en fonction de la direction et du mouvement
+     * Met à jour le sprite affiché en fonction de la direction et de l'état de mouvement.
+     * Gère l'animation de marche en alternant les sprites.
      */
     private void updateSprite() {
         if (sprites == null || currentSprite == null) return;
@@ -209,7 +337,12 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Création de la représentation visuelle du joueur
+     * Crée une représentation visuelle du joueur pour l'affichage dans l'interface.
+     * <p>
+     * Si les sprites sont disponibles, utilise les images. Sinon, crée une représentation
+     * alternative avec des formes géométriques.
+     *
+     * @return Un StackPane contenant la représentation visuelle du joueur
      */
     public StackPane createVisualRepresentation() {
         StackPane playerNode = new StackPane();
@@ -270,10 +403,13 @@ public class JavaFXPlayer extends GameObject {
         return playerNode;
     }
 
-    // ... (reste du code inchangé pour les autres méthodes)
-
     /**
-     * Définit le mode de jeu pour les bombes
+     * Définit le mode de jeu pour les bombes.
+     * <p>
+     * Ajuste automatiquement l'inventaire de bombes en fonction du mode.
+     *
+     * @param gameMode Le nouveau mode de jeu
+     * @see Etat.GameMode
      */
     public void setGameMode(GameMode gameMode) {
         GameMode oldMode = this.gameMode;
@@ -289,7 +425,13 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Configuration des touches de contrôle
+     * Configure les touches de contrôle du joueur.
+     *
+     * @param up    Touche pour monter
+     * @param down  Touche pour descendre
+     * @param left  Touche pour aller à gauche
+     * @param right Touche pour aller à droite
+     * @param bomb  Touche pour poser une bombe
      */
     public void setKeys(KeyCode up, KeyCode down, KeyCode left, KeyCode right, KeyCode bomb) {
         this.upKey = up;
@@ -302,7 +444,11 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Définit la position de spawn du joueur
+     * Définit la position de spawn du joueur.
+     * C'est la position où le joueur apparaît au début et après avoir perdu une vie.
+     *
+     * @param x Coordonnée X du spawn
+     * @param y Coordonnée Y du spawn
      */
     public void setSpawnPosition(int x, int y) {
         this.spawnX = x;
@@ -311,7 +457,10 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Définit la position dans la grille
+     * Définit la position actuelle du joueur dans la grille de jeu.
+     *
+     * @param x Coordonnée X dans la grille
+     * @param y Coordonnée Y dans la grille
      */
     public void setGridPosition(int x, int y) {
         this.x = x;
@@ -319,7 +468,11 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Déplacement du joueur
+     * Déplace le joueur dans la direction spécifiée.
+     * Met à jour la direction et l'état de mouvement, ainsi que le sprite.
+     *
+     * @param direction Direction du mouvement
+     * @see Etat.Direction
      */
     public void move(Direction direction) {
         this.currentDirection = direction;
@@ -329,6 +482,10 @@ public class JavaFXPlayer extends GameObject {
         updateSprite(); // Mettre à jour immédiatement le sprite
     }
 
+    /**
+     * Arrête le mouvement du joueur.
+     * Met à jour l'état de mouvement et le sprite.
+     */
     public void stopMoving() {
         this.moving = false;
         this.walking = false;
@@ -336,7 +493,12 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Vérification si le joueur peut placer une bombe
+     * Vérifie si le joueur peut placer une bombe.
+     * <p>
+     * En mode limité, vérifie l'inventaire de bombes.
+     * En mode infini, retourne toujours true si le joueur est vivant.
+     *
+     * @return true si le joueur peut placer une bombe, false sinon
      */
     public boolean canPlaceBomb() {
         if (!alive) {
@@ -358,7 +520,9 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Placement d'une bombe
+     * Place une bombe à la position actuelle du joueur.
+     * <p>
+     * En mode limité, réduit l'inventaire de bombes.
      */
     public void placeBomb() {
         if (!alive) return;
@@ -376,7 +540,12 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Ajouter des bombes à l'inventaire (power-up)
+     * Ajoute des bombes à l'inventaire du joueur.
+     * <p>
+     * En mode limité, augmente l'inventaire jusqu'à un maximum de 15.
+     * En mode infini, cette méthode n'a qu'un effet cosmétique.
+     *
+     * @param count Nombre de bombes à ajouter
      */
     public void addBombs(int count) {
         if (gameMode.isLimited()) {
@@ -396,14 +565,16 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Une bombe a explosé
+     * Méthode appelée lorsqu'une bombe du joueur explose.
      */
     public void bombExploded() {
         System.out.println("💥 Bombe de " + name + " a explosé");
     }
 
     /**
-     * Le joueur subit des dégâts
+     * Inflige des dégâts au joueur.
+     * <p>
+     * Réduit le nombre de vies et vérifie si le joueur est éliminé.
      */
     public void takeDamage() {
         if (!alive) return;
@@ -418,7 +589,9 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Guérison du joueur (power-up)
+     * Soigne le joueur en lui ajoutant une vie.
+     * <p>
+     * Le nombre maximum de vies est limité à 9.
      */
     public void heal() {
         if (alive && lives < 9) {
@@ -428,14 +601,18 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Amélioration du nombre de bombes (power-up)
+     * Augmente le nombre de bombes disponibles (power-up).
+     * <p>
+     * Appelle addBombs(1).
      */
     public void increaseBombCount() {
         addBombs(1);
     }
 
     /**
-     * Amélioration de la puissance des bombes (power-up)
+     * Augmente la puissance des bombes (power-up).
+     * <p>
+     * La puissance maximale est limitée à 8.
      */
     public void increaseBombPower() {
         if (bombPower < 8) {
@@ -445,7 +622,9 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Amélioration de la vitesse (power-up)
+     * Augmente la vitesse du joueur (power-up).
+     * <p>
+     * La vitesse maximale est limitée à 5.
      */
     public void increaseSpeed() {
         if (speed < 5) {
@@ -455,7 +634,9 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Ajout de points
+     * Ajoute des points au score du joueur.
+     *
+     * @param points Nombre de points à ajouter
      */
     public void addScore(int points) {
         score += points;
@@ -463,7 +644,9 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Réinitialisation du joueur pour une nouvelle partie
+     * Réinitialise le joueur pour une nouvelle partie.
+     * <p>
+     * Restaure les vies, la position de spawn, et les statistiques par défaut.
      */
     public void reset() {
         this.alive = true;
@@ -482,7 +665,9 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Obtient le numéro du joueur basé sur sa couleur
+     * Obtient le numéro du joueur basé sur sa couleur.
+     *
+     * @return Numéro du joueur sous forme de chaîne
      */
     private String getPlayerNumber() {
         if (color.equals(Color.RED)) return "1";
@@ -493,7 +678,11 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Méthode utilitaire pour l'affichage de l'inventaire dans l'UI
+     * Méthode utilitaire pour l'affichage de l'inventaire de bombes dans l'UI.
+     * <p>
+     * En mode infini, renvoie "∞". En mode limité, renvoie le nombre de bombes.
+     *
+     * @return Représentation textuelle de l'inventaire de bombes
      */
     public String getBombInventoryDisplay() {
         if (gameMode.isInfinite()) {
@@ -504,7 +693,13 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Vérifie si le joueur peut recevoir un power-up
+     * Vérifie si le joueur peut recevoir un power-up spécifique.
+     * <p>
+     * Prend en compte l'état actuel du joueur et les limites des statistiques.
+     *
+     * @param powerUpType Type de power-up à vérifier
+     * @return true si le joueur peut recevoir le power-up, false sinon
+     * @see Etat.PowerUpType
      */
     public boolean canReceivePowerUp(PowerUpType powerUpType) {
         if (!alive) return false;
@@ -524,7 +719,13 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Application d'un power-up
+     * Applique un power-up au joueur.
+     * <p>
+     * Vérifie d'abord si le joueur peut recevoir le power-up, puis l'applique
+     * et ajoute un bonus de score.
+     *
+     * @param powerUpType Type de power-up à appliquer
+     * @see Etat.PowerUpType
      */
     public void applyPowerUp(PowerUpType powerUpType) {
         if (!canReceivePowerUp(powerUpType)) {
@@ -551,7 +752,10 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Méthode de mise à jour (héritée de GameObject)
+     * Méthode de mise à jour appelée à chaque frame du jeu.
+     * <p>
+     * Héritée de GameObject, peut être utilisée pour implémenter des comportements
+     * spécifiques au joueur qui doivent être mis à jour régulièrement.
      */
     @Override
     public void update() {
@@ -560,45 +764,168 @@ public class JavaFXPlayer extends GameObject {
 
     // ===== GETTERS =====
 
+    /**
+     * @return Nom du joueur
+     */
     public String getName() { return name; }
+    
+    /**
+     * @return Couleur du joueur
+     */
     public Color getColor() { return color; }
+    
+    /**
+     * @return true si le joueur est vivant, false sinon
+     */
     public boolean isAlive() { return alive; }
+    
+    /**
+     * @return Nombre de vies restantes
+     */
     public int getLives() { return lives; }
+    
+    /**
+     * @return Nombre de bombes dans l'inventaire
+     */
     public int getBombInventory() { return bombInventory; }
+    
+    /**
+     * @return Puissance des bombes
+     */
     public int getBombPower() { return bombPower; }
+    
+    /**
+     * @return Vitesse du joueur
+     */
     public int getSpeed() { return speed; }
+    
+    /**
+     * @return Score du joueur
+     */
     public int getScore() { return score; }
+    
+    /**
+     * @return Mode de jeu actuel pour les bombes
+     */
     public GameMode getGameMode() { return gameMode; }
+    
+    /**
+     * @return Coordonnée X dans la grille
+     */
     public int getGridX() { return x; }
+    
+    /**
+     * @return Coordonnée Y dans la grille
+     */
     public int getGridY() { return y; }
+    
+    /**
+     * @return Coordonnée X du spawn
+     */
     public int getSpawnX() { return spawnX; }
+    
+    /**
+     * @return Coordonnée Y du spawn
+     */
     public int getSpawnY() { return spawnY; }
+    
+    /**
+     * @return Touche pour monter
+     */
     public KeyCode getUpKey() { return upKey; }
+    
+    /**
+     * @return Touche pour descendre
+     */
     public KeyCode getDownKey() { return downKey; }
+    
+    /**
+     * @return Touche pour aller à gauche
+     */
     public KeyCode getLeftKey() { return leftKey; }
+    
+    /**
+     * @return Touche pour aller à droite
+     */
     public KeyCode getRightKey() { return rightKey; }
+    
+    /**
+     * @return Touche pour poser une bombe
+     */
     public KeyCode getBombKey() { return bombKey; }
+    
+    /**
+     * @return Direction actuelle du joueur
+     */
     public Direction getCurrentDirection() { return currentDirection; }
+    
+    /**
+     * @return true si le joueur est en mouvement, false sinon
+     */
     public boolean isMoving() { return moving; }
 
     // ===== SETTERS =====
 
+    /**
+     * Définit le nom du joueur.
+     * @param name Nouveau nom
+     */
     public void setName(String name) { this.name = name; }
+    
+    /**
+     * Définit la couleur du joueur.
+     * @param color Nouvelle couleur
+     */
     public void setColor(Color color) { this.color = color; }
+    
+    /**
+     * Définit l'état de vie du joueur.
+     * @param alive Nouvel état (true = vivant, false = mort)
+     */
     public void setAlive(boolean alive) { this.alive = alive; }
+    
+    /**
+     * Définit le nombre de vies du joueur.
+     * <p>
+     * Si le nombre de vies est inférieur ou égal à zéro, le joueur est marqué comme mort.
+     * 
+     * @param lives Nouveau nombre de vies
+     */
     public void setLives(int lives) {
         this.lives = lives;
         if (lives <= 0) this.alive = false;
     }
+    
+    /**
+     * Définit la puissance des bombes.
+     * @param bombPower Nouvelle puissance
+     */
     public void setBombPower(int bombPower) { this.bombPower = bombPower; }
+    
+    /**
+     * Définit la vitesse du joueur.
+     * @param speed Nouvelle vitesse
+     */
     public void setSpeed(int speed) { this.speed = speed; }
+    
+    /**
+     * Définit le score du joueur.
+     * @param score Nouveau score
+     */
     public void setScore(int score) { this.score = score; }
+    
+    /**
+     * Définit le nombre de bombes dans l'inventaire.
+     * @param bombInventory Nouveau nombre de bombes
+     */
     public void setBombInventory(int bombInventory) { this.bombInventory = bombInventory; }
 
     // ===== MÉTHODES UTILITAIRES =====
 
     /**
-     * Représentation textuelle du joueur
+     * Retourne une représentation textuelle du joueur.
+     * 
+     * @return Chaîne formatée contenant les informations principales du joueur
      */
     @Override
     public String toString() {
@@ -608,28 +935,42 @@ public class JavaFXPlayer extends GameObject {
     }
 
     /**
-     * Vérifie si le joueur est à une position donnée
+     * Vérifie si le joueur est à une position donnée dans la grille.
+     *
+     * @param x Coordonnée X à vérifier
+     * @param y Coordonnée Y à vérifier
+     * @return true si le joueur est à cette position, false sinon
      */
     public boolean isAtPosition(int x, int y) {
         return this.x == x && this.y == y;
     }
 
     /**
-     * Vérifie si le joueur est à sa position de spawn
+     * Vérifie si le joueur est à sa position de spawn.
+     *
+     * @return true si le joueur est à sa position de spawn, false sinon
      */
     public boolean isAtSpawn() {
         return x == spawnX && y == spawnY;
     }
 
     /**
-     * Calcule la distance jusqu'à une position
+     * Calcule la distance euclidienne entre le joueur et une position cible.
+     *
+     * @param targetX Coordonnée X de la cible
+     * @param targetY Coordonnée Y de la cible
+     * @return Distance en unités de grille
      */
     public double distanceTo(int targetX, int targetY) {
         return Math.sqrt(Math.pow(x - targetX, 2) + Math.pow(y - targetY, 2));
     }
 
     /**
-     * Retourne les statistiques du joueur sous forme de texte
+     * Retourne les statistiques du joueur sous forme de texte formaté.
+     * <p>
+     * Utilisé pour l'affichage dans l'interface utilisateur.
+     *
+     * @return Chaîne formatée contenant les statistiques du joueur
      */
     public String getStatsText() {
         return String.format("%s\n❤️ Vies: %d\n%s Bombes: %s\n💥 Puissance: %d\n⚡ Vitesse: %d\n🏆 Score: %d\n%s",
