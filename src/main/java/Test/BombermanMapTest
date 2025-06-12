@@ -1,0 +1,102 @@
+package fonctionnaliteInitial;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class BombermanMapTest {
+    private BombermanMap map;
+
+    @BeforeEach
+    void setUp() {
+        map = new BombermanMap();
+        map.generateRandomMap();
+    }
+
+    @Test
+    void testGridDimensions() {
+        assertEquals(15, map.getGridWidth());
+        assertEquals(13, map.getGridHeight());
+        assertEquals(40, map.getCellSize());
+    }
+
+    @Test
+    void testBaseMapPreserved() {
+        int[][] gameMap = map.getGameMap();
+        
+        // Vérification des bordures
+        for (int i = 0; i < map.getGridHeight(); i++) {
+            assertEquals(1, gameMap[i][0]);  // Bord gauche
+            assertEquals(1, gameMap[i][map.getGridWidth() - 1]);  // Bord droit
+        }
+        
+        for (int j = 0; j < map.getGridWidth(); j++) {
+            assertEquals(1, gameMap[0][j]);  // Bord supérieur
+            assertEquals(1, gameMap[map.getGridHeight() - 1][j]);  // Bord inférieur
+        }
+        
+        // Vérification des zones de spawn
+        assertEquals(3, gameMap[1][1]);
+        assertEquals(3, gameMap[1][13]);
+        assertEquals(3, gameMap[11][1]);
+        assertEquals(3, gameMap[11][13]);
+    }
+
+    @Test
+    void testDestructibleBlocksPlacement() {
+        int[][] gameMap = map.getGameMap();
+        
+        // Vérifie que les zones près des spawns sont vides
+        assertNotEquals(2, gameMap[1][2]);  // À côté du spawn
+        assertNotEquals(2, gameMap[2][1]);  // À côté du spawn
+        
+        // Vérifie qu'il y a des blocs destructibles dans les zones autorisées
+        boolean foundDestructible = false;
+        for (int i = 2; i < map.getGridHeight() - 2; i++) {
+            for (int j = 2; j < map.getGridWidth() - 2; j++) {
+                if (gameMap[i][j] == BombermanMap.DESTRUCTIBLE) {
+                    foundDestructible = true;
+                    break;
+                }
+            }
+        }
+        assertTrue(foundDestructible, "Aucun bloc destructible trouvé");
+    }
+
+    @Test
+    void testCellAccessors() {
+        // Modification d'une cellule
+        map.setCell(1, 1, BombermanMap.EMPTY);
+        assertEquals(BombermanMap.EMPTY, map.getCell(1, 1));
+        
+        // Test coordonnées invalides
+        assertEquals(-1, map.getCell(-1, -1));
+        assertEquals(-1, map.getCell(20, 20));
+    }
+
+    @Test
+    void testThemeManagement() {
+        // Vérification du thème par défaut
+        assertEquals(BombermanMap.Theme.CLASSIC, BombermanMap.getCurrentTheme());
+        
+        // Changement de thème
+        BombermanMap.setTheme(BombermanMap.Theme.PIRATE);
+        assertEquals(BombermanMap.Theme.PIRATE, BombermanMap.getCurrentTheme());
+        
+        // Réinitialisation
+        BombermanMap.setTheme(BombermanMap.Theme.CLASSIC);
+    }
+
+    @Test
+    void testNearSpawnDetection() {
+        // Positions proches des spawns (coins)
+        assertTrue(map.isNearSpawn(1, 1));  // Coin supérieur gauche
+        assertTrue(map.isNearSpawn(1, 13)); // Coin supérieur droit
+        assertTrue(map.isNearSpawn(11, 1)); // Coin inférieur gauche
+        assertTrue(map.isNearSpawn(11, 13)); // Coin inférieur droit
+        
+        // Positions non proches
+        assertFalse(map.isNearSpawn(5, 5));  // Centre
+        assertFalse(map.isNearSpawn(3, 10)); // Zone intermédiaire
+    }
+}

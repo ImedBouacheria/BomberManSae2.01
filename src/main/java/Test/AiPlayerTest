@@ -1,0 +1,141 @@
+import Etat.Direction;
+import fonctionnaliteInitial.GameController;
+import Joueur.JavaFXPlayer;
+import javafx.animation.Timeline;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+class AiPlayerTest {
+
+    private AiPlayer aiPlayer;
+    private GameController gameControllerMock;
+    private JavaFXPlayer playerMock;
+    private final int PLAYER_ID = 1;
+
+    @BeforeEach
+    void setUp() {
+        gameControllerMock = Mockito.mock(GameController.class);
+        playerMock = Mockito.mock(JavaFXPlayer.class);
+        
+        when(gameControllerMock.getPlayerById(PLAYER_ID)).thenReturn(playerMock);
+        when(playerMock.isAlive()).thenReturn(true);
+        
+        aiPlayer = new AiPlayer(PLAYER_ID, gameControllerMock);
+    }
+
+    @Test
+    void testConstructor() {
+        assertEquals(PLAYER_ID, aiPlayer.getPlayerId());
+        assertTrue(aiPlayer.isActive());
+        assertNotNull(aiPlayer);
+    }
+
+    @Test
+    void testStartAndStopAI() {
+        aiPlayer.startAI();
+        assertTrue(aiPlayer.isActive());
+        
+        aiPlayer.stopAI();
+        assertFalse(aiPlayer.isActive());
+    }
+
+    @Test
+    void testPerformSmartMovementWithAvailableDirections() {
+        // Configurer le mock pour retourner des directions disponibles
+        List<Direction> safeDirs = Arrays.asList(Direction.UP, Direction.RIGHT);
+        when(gameControllerMock.getSafeDirections(playerMock)).thenReturn(safeDirs);
+        
+        aiPlayer.performSmartMovement();
+        
+        // Vérifier que handleAIMovement a été appelé
+        verify(gameControllerMock, times(1)).handleAIMovement(eq(PLAYER_ID), anyString(), eq(true));
+    }
+
+    @Test
+    void testPerformSmartMovementWithNoAvailableDirections() {
+        // Configurer le mock pour retourner une liste vide de directions
+        when(gameControllerMock.getSafeDirections(playerMock)).thenReturn(Collections.emptyList());
+        
+        aiPlayer.performSmartMovement();
+        
+        // Vérifier que handleAIMovement n'a pas été appelé
+        verify(gameControllerMock, never()).handleAIMovement(anyInt(), anyString(), anyBoolean());
+    }
+
+    @Test
+    void testPerformSmartMovementWhenPlayerDead() {
+        when(playerMock.isAlive()).thenReturn(false);
+        
+        aiPlayer.performSmartMovement();
+        
+        verify(gameControllerMock, never()).handleAIMovement(anyInt(), anyString(), anyBoolean());
+    }
+
+    @Test
+    void testPlaceBomb() {
+        aiPlayer.placeBomb();
+        
+        verify(gameControllerMock, times(1)).handleAIBombPlacement(PLAYER_ID);
+        assertTrue(aiPlayer.justPlacedBomb);
+    }
+
+    @Test
+    void testPerformEscapeMovement() {
+        // Configurer le mock pour retourner des directions disponibles
+        List<Direction> escapeDirs = Arrays.asList(Direction.DOWN, Direction.LEFT);
+        when(gameControllerMock.getSafeDirections(playerMock)).thenReturn(escapeDirs);
+        
+        aiPlayer.justPlacedBomb = true;
+        aiPlayer.performAIAction(); // Devrait déclencher performEscapeMovement
+        
+        verify(gameControllerMock, times(1)).handleAIMovement(eq(PLAYER_ID), anyString(), eq(true));
+        assertFalse(aiPlayer.justPlacedBomb);
+    }
+
+    @Test
+    void testPerformAIActionWithBombPlacement() {
+        // Forcer le choix de placement de bombe (en mockant le random)
+        AiPlayer spyAi = Mockito.spy(aiPlayer);
+        when(spyAi.getRandomDouble()).thenReturn(0.95); // Au-dessus de MOVE_PROBABILITY
+        
+        spyAi.performAIAction();
+        
+        verify(gameControllerMock, times(1)).handleAIBombPlacement(PLAYER_ID);
+        verify(spyAi, times(1)).performEscapeMovement();
+    }
+
+    @Test
+    void testPerformAIActionWithMovement() {
+        // Forcer le choix de mouvement (en mockant le random)
+        AiPlayer spyAi = Mockito.spy(aiPlayer);
+        when(spyAi.getRandomDouble()).thenReturn(0.5); // En dessous de MOVE_PROBABILITY
+        when(gameControllerMock.getSafeDirections(playerMock)).thenReturn(Arrays.asList(Direction.UP));
+        
+        spyAi.performAIAction();
+        
+        verify(gameControllerMock, times(1)).handleAIMovement(eq(PLAYER_ID), anyString(), eq(true));
+    }
+
+    @Test
+    void testAdjustNextActionDelay() {
+        Timeline originalTimeline = aiPlayer.aiTimeline;
+        aiPlayer.adjustNextActionDelay();
+        
+        assertNotSame(originalTimeline, aiPlayer.aiTimeline);
+        assertNotNull(aiPlayer.aiTimeline);
+    }
+
+    // Méthode utilitaire pour le test (à ajouter dans AiPlayer si nécessaire)
+    private double getRandomDouble() {
+        return random.nextDouble();
+    }
+}

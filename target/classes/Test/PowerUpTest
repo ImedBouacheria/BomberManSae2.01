@@ -1,0 +1,98 @@
+import Etat.PowerUpType;
+import fonctionnaliteInitial.PowerUp;
+import javafx.scene.layout.StackPane;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class PowerUpTest {
+
+    private PowerUp bombPowerUp;
+    private PowerUp speedPowerUp;
+    private PowerUp lifePowerUp;
+    private PowerUp powerPowerUp;
+
+    @BeforeEach
+    void setUp() {
+        bombPowerUp = new PowerUp(2, 3, PowerUpType.BOMB_COUNT);
+        speedPowerUp = new PowerUp(4, 5, PowerUpType.SPEED);
+        lifePowerUp = new PowerUp(1, 1, PowerUpType.LIFE);
+        powerPowerUp = new PowerUp(3, 2, PowerUpType.BOMB_POWER);
+    }
+
+    @Test
+    void testConstructor() {
+        assertEquals(2, bombPowerUp.getGridX());
+        assertEquals(3, bombPowerUp.getGridY());
+        assertEquals(PowerUpType.BOMB_COUNT, bombPowerUp.getType());
+        assertFalse(bombPowerUp.isCollected());
+    }
+
+    @Test
+    void testCollect() {
+        assertFalse(bombPowerUp.isCollected());
+        bombPowerUp.collect();
+        assertTrue(bombPowerUp.isCollected());
+    }
+
+    @Test
+    void testGetType() {
+        assertEquals(PowerUpType.SPEED, speedPowerUp.getType());
+        assertEquals(PowerUpType.LIFE, lifePowerUp.getType());
+        assertEquals(PowerUpType.BOMB_POWER, powerPowerUp.getType());
+    }
+
+    @Test
+    void testGetGridCoordinates() {
+        assertEquals(4, speedPowerUp.getGridX());
+        assertEquals(5, speedPowerUp.getGridY());
+    }
+
+    @Test
+    void testCreateVisualRepresentation() {
+        // Test pour chaque type de power-up
+        testPowerUpVisual(bombPowerUp);
+        testPowerUpVisual(speedPowerUp);
+        testPowerUpVisual(lifePowerUp);
+        testPowerUpVisual(powerPowerUp);
+    }
+
+    private void testPowerUpVisual(PowerUp powerUp) {
+        StackPane visual = powerUp.createVisualRepresentation();
+        assertNotNull(visual);
+        assertEquals("powerup-node", visual.getStyleClass().get(0));
+        assertTrue(visual.getUserData().toString().contains("powerup-"));
+        
+        // Vérifie que le conteneur n'est pas vide
+        assertFalse(visual.getChildren().isEmpty());
+    }
+
+    @Test
+    void testGetBackgroundColor() {
+        // Test indirect via la création visuelle
+        StackPane bombVisual = bombPowerUp.createVisualRepresentation();
+        StackPane speedVisual = speedPowerUp.createVisualRepresentation();
+        StackPane lifeVisual = lifePowerUp.createVisualRepresentation();
+        StackPane powerVisual = powerPowerUp.createVisualRepresentation();
+        
+        assertNotNull(bombVisual);
+        assertNotNull(speedVisual);
+        assertNotNull(lifeVisual);
+        assertNotNull(powerVisual);
+    }
+
+    @Test
+    void testUpdate() {
+        // La méthode update ne fait rien, on vérifie juste qu'elle s'exécute sans erreur
+        assertDoesNotThrow(() -> bombPowerUp.update());
+    }
+
+    @Test
+    void testCreateBombSpriteIconFallback() {
+        // Ce test vérifie que le fallback fonctionne si l'image n'est pas trouvée
+        // On pourrait utiliser Mockito pour simuler l'échec de chargement
+        PowerUp powerUp = new PowerUp(0, 0, PowerUpType.BOMB_COUNT);
+        StackPane visual = powerUp.createVisualRepresentation();
+        assertNotNull(visual);
+    }
+}
