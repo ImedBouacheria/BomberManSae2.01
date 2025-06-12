@@ -7,7 +7,7 @@ package Etat;
 public enum GameMode {
     LIMITED_BOMBS(
             "🎯 Bombes Limitées",
-            "Les joueurs commencent avec 3 bombes. Collectez des power-ups pour en avoir plus !",
+            "Les joueurs commencent avec 10 bombes. Collectez des power-ups pour en avoir plus !",
             "🎯",
             3
     ),
