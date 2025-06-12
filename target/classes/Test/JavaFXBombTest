@@ -1,0 +1,111 @@
+import Joueur.JavaFXPlayer;
+import javafx.animation.Timeline;
+import javafx.scene.layout.StackPane;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class JavaFXBombTest {
+
+    private JavaFXBomb bomb;
+    private JavaFXPlayer ownerMock;
+    private final int X = 2;
+    private final int Y = 3;
+    private final int POWER = 2;
+
+    @BeforeEach
+    void setUp() {
+        ownerMock = Mockito.mock(JavaFXPlayer.class);
+        bomb = new JavaFXBomb(ownerMock, X, Y, POWER);
+    }
+
+    @Test
+    void testConstructor() {
+        assertEquals(X, bomb.getGridX());
+        assertEquals(Y, bomb.getGridY());
+        assertEquals(POWER, bomb.getPower());
+        assertEquals(ownerMock, bomb.getOwner());
+        assertFalse(bomb.isExploded());
+    }
+
+    @Test
+    void testCreateVisualRepresentation() {
+        StackPane visual = bomb.createVisualRepresentation();
+        assertNotNull(visual);
+        assertEquals("bomb-node", visual.getStyleClass().get(0));
+        assertFalse(visual.getChildren().isEmpty());
+    }
+
+    @Test
+    void testStartCountdown() {
+        Runnable explosionCallback = Mockito.mock(Runnable.class);
+        bomb.startCountdown(explosionCallback);
+        
+        // Vérifier que le callback est bien enregistré
+        assertNotNull(bomb.explosionCallback);
+        
+        // Simuler l'explosion
+        bomb.explode();
+        verify(explosionCallback, times(1)).run();
+    }
+
+    @Test
+    void testExplode() {
+        Runnable explosionCallback = Mockito.mock(Runnable.class);
+        bomb.startCountdown(explosionCallback);
+        
+        assertFalse(bomb.isExploded());
+        bomb.explode();
+        assertTrue(bomb.isExploded());
+        
+        // Vérifier que le callback est appelé
+        verify(explosionCallback, times(1)).run();
+        
+        // Vérifier que les timers sont arrêtés
+        assertNull(bomb.countdownTimer); // Ou vérifier qu'ils sont stoppés si on peut y accéder
+    }
+
+    @Test
+    void testUpdate() {
+        // Test que la position est bien synchronisée
+        bomb.update();
+        assertEquals(X, bomb.getGridX());
+        assertEquals(Y, bomb.getGridY());
+    }
+
+    @Test
+    void testStartBlinking() {
+        // Pour tester cela, on pourrait utiliser TestFX ou vérifier l'état interne
+        // Comme c'est difficile à tester unitairement, on vérifie juste que la méthode ne plante pas
+        assertDoesNotThrow(() -> bomb.startBlinking());
+    }
+
+    @Test
+    void testToggleBombColor() {
+        // Initialement pas de bombImageView si les images ne chargent pas
+        if (bomb.bombImageView != null) {
+            Image initialImage = bomb.bombImageView.getImage();
+            bomb.toggleBombColor();
+            assertNotEquals(initialImage, bomb.bombImageView.getImage());
+        }
+    }
+
+    @Test
+    void testAccelerateBlinking() {
+        // Test que la méthode ne plante pas
+        bomb.startBlinking();
+        assertDoesNotThrow(() -> bomb.accelerateBlinking());
+    }
+
+    @Test
+    void testGetters() {
+        assertEquals(X, bomb.getGridX());
+        assertEquals(Y, bomb.getGridY());
+        assertEquals(POWER, bomb.getPower());
+        assertEquals(ownerMock, bomb.getOwner());
+        assertEquals(JavaFXBomb.EXPLOSION_DELAY, bomb.getTimer());
+    }
+}
