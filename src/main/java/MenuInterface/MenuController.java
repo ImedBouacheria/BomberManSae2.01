@@ -27,20 +27,54 @@ import java.net.URL;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+/**
+ * Contrôleur pour l'interface du menu principal du jeu Bomberman.
+ * Cette classe gère les interactions utilisateur avec le menu principal, y compris
+ * la navigation vers différents modes de jeu, la page de profil, et la gestion des paramètres.
+ * Elle contrôle également les animations et effets visuels des éléments du menu.
+ * 
+ * @author Bomberman Team
+ * @version 1.0
+ */
 public class MenuController implements Initializable {
 
+    /** Label pour le titre du menu principal */
     @FXML private Label titleLabel;
+    
+    /** Bouton pour le mode contre l'IA */
     @FXML private Button aiModeButton;
+    
+    /** Bouton pour le mode multijoueur */
     @FXML private Button multiplayerButton;
+    
+    /** Bouton pour le mode capture */
     @FXML private Button captureModeButton;
+    
+    /** Bouton pour l'éditeur de niveaux */
     @FXML private Button editorButton;
+    
+    /** Bouton pour accéder à la page de profil */
     @FXML private Button profileButton;
+    
+    /** Bouton pour accéder aux paramètres */
     @FXML private Button settingsButton;
+    
+    /** Bouton pour quitter l'application */
     @FXML private Button quitButton;
 
+    /** Référence à l'application principale */
     private BombermanApplication application;
+    
+    /** Animation du titre principal */
     private Timeline titleAnimation;
 
+    /**
+     * Initialise le contrôleur après l'injection des composants FXML.
+     * Configure les composants UI, démarre les animations et met en place les effets visuels.
+     * 
+     * @param url L'emplacement utilisé pour résoudre les chemins relatifs des objets racine, ou null
+     * @param resourceBundle Les ressources utilisées pour localiser l'objet racine, ou null
+     */
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         System.out.println("=== INITIALISATION DU MENU CONTROLLER ===");
@@ -89,11 +123,21 @@ public class MenuController implements Initializable {
         System.out.println("✅ Menu Controller initialisé avec succès");
     }
 
+    /**
+     * Définit la référence à l'application principale.
+     * Cette méthode est appelée par l'application pour établir la communication bidirectionnelle.
+     * 
+     * @param app L'instance de l'application Bomberman
+     */
     public void setApplication(BombermanApplication app) {
         this.application = app;
         System.out.println("🔗 Application liée au MenuController: " + (app != null ? "✅ OK" : "❌ NULL"));
     }
 
+    /**
+     * Gère le clic sur le bouton du mode contre IA.
+     * Affiche une boîte de dialogue permettant de choisir le nombre de joueurs humains.
+     */
     @FXML
     private void handleAIMode() {
         System.out.println("🤖 Bouton CONTRE IA cliqué");
@@ -127,6 +171,10 @@ public class MenuController implements Initializable {
         }
     }
 
+    /**
+     * Gère le clic sur le bouton du mode multijoueur.
+     * Affiche une boîte de dialogue permettant de choisir le nombre de joueurs humains (de 2 à 4).
+     */
     @FXML
     private void handleMultiplayer() {
         System.out.println("🎮 BOUTON MULTIJOUEUR CLIQUÉ !");
@@ -182,18 +230,30 @@ public class MenuController implements Initializable {
         }
     }
 
+    /**
+     * Gère le clic sur le bouton du mode capture.
+     * Affiche un message indiquant que cette fonctionnalité n'est pas encore implémentée.
+     */
     @FXML
     private void handleCaptureMode() {
         System.out.println("🏁 Bouton CAPTURE MODE cliqué");
         showAlert("MODE CAPTURE", "Mode non encore implémenté.\nDisponible dans une future version !");
     }
 
+    /**
+     * Gère le clic sur le bouton de l'éditeur.
+     * Affiche un message indiquant que cette fonctionnalité est en développement.
+     */
     @FXML
     private void handleEditor() {
         System.out.println("🛠️ Bouton EDITEUR cliqué");
         showAlert("EDITEUR", "Fonctionnalité en développement.\nBientôt disponible !");
     }
 
+    /**
+     * Gère le clic sur le bouton de profil.
+     * Affiche la page de profil utilisateur si l'application est correctement initialisée.
+     */
     @FXML
     private void handleProfile() {
         System.out.println("👤 Bouton PROFIL cliqué");
@@ -204,7 +264,11 @@ public class MenuController implements Initializable {
         }
     }
 
-    /*@FXML
+    /**
+     * Gère le clic sur le bouton de paramètres (actuellement commenté).
+     * Cette méthode est prévue pour afficher les paramètres du jeu.
+     
+    @FXML
     private void handleSettings() {
         System.out.println("⚙️ Bouton PARAMETRES cliqué");
         if (application != null) {
@@ -214,6 +278,10 @@ public class MenuController implements Initializable {
         }
     }*/
 
+    /**
+     * Gère le clic sur le bouton de quitter.
+     * Affiche une boîte de dialogue de confirmation avant de fermer l'application.
+     */
     @FXML
     private void handleQuit() {
         System.out.println("🚪 Bouton QUITTER cliqué");
@@ -233,6 +301,9 @@ public class MenuController implements Initializable {
         }
     }
 
+    /**
+     * Affiche une alerte d'erreur en cas de problème d'initialisation de l'application.
+     */
     private void showErrorAlert() {
         Alert errorAlert = new Alert(Alert.AlertType.ERROR);
         errorAlert.setTitle("Erreur");
@@ -241,6 +312,10 @@ public class MenuController implements Initializable {
         errorAlert.showAndWait();
     }
 
+    /**
+     * Démarre l'animation du titre du menu principal avec des changements de couleur.
+     * L'animation alterne entre différentes couleurs en continu.
+     */
     private void startTitleAnimation() {
         if (titleLabel != null) {
             titleAnimation = new Timeline(
@@ -256,6 +331,10 @@ public class MenuController implements Initializable {
         }
     }
 
+    /**
+     * Configure les effets visuels pour tous les boutons du menu.
+     * Applique des effets de survol à chaque bouton.
+     */
     private void setupButtonEffects() {
         System.out.println("🎨 Configuration des effets de survol...");
         setupButtonHoverEffect(aiModeButton);
@@ -267,6 +346,12 @@ public class MenuController implements Initializable {
         setupButtonHoverEffect(quitButton);
     }
 
+    /**
+     * Configure l'effet de survol pour un bouton spécifique.
+     * Change le style et ajoute une animation de pulsation lorsque la souris survole le bouton.
+     * 
+     * @param button Le bouton auquel appliquer l'effet de survol
+     */
     private void setupButtonHoverEffect(Button button) {
         if (button == null) return;
 
@@ -295,6 +380,10 @@ public class MenuController implements Initializable {
         });
     }
 
+    /**
+     * Affiche la page de profil utilisateur.
+     * Crée et configure une nouvelle scène avec des champs pour le nom, prénom et la couleur du sprite.
+     */
     private void showProfilePage() {
         if (titleAnimation != null) {
             titleAnimation.stop();
@@ -366,6 +455,12 @@ public class MenuController implements Initializable {
         startProfileTitleAnimation(title);
     }
 
+    /**
+     * Crée un champ de texte avec un style rétro.
+     * 
+     * @param promptText Le texte indicatif à afficher dans le champ
+     * @return Un objet TextField stylisé
+     */
     private TextField createRetroTextField(String promptText) {
         TextField field = new TextField();
         field.setPromptText(promptText);
@@ -381,6 +476,12 @@ public class MenuController implements Initializable {
         return field;
     }
 
+    /**
+     * Crée une étiquette avec un style rétro.
+     * 
+     * @param text Le texte de l'étiquette
+     * @return Un objet Label stylisé
+     */
     private Label createRetroLabel(String text) {
         Label label = new Label(text);
         label.setFont(Font.font("System", FontWeight.BOLD, 14));
@@ -388,6 +489,11 @@ public class MenuController implements Initializable {
         return label;
     }
 
+    /**
+     * Applique un style rétro à une liste déroulante.
+     * 
+     * @param comboBox La liste déroulante à styliser
+     */
     private void styleRetroComboBox(ComboBox<String> comboBox) {
         comboBox.setPrefHeight(40);
         comboBox.setStyle(
@@ -401,6 +507,13 @@ public class MenuController implements Initializable {
         );
     }
 
+    /**
+     * Applique un style rétro à un bouton avec une couleur de base spécifiée.
+     * Configure également les effets de survol pour le bouton.
+     * 
+     * @param button Le bouton à styliser
+     * @param baseColor La couleur de base du bouton
+     */
     private void styleRetroButton(Button button, Color baseColor) {
         button.setPrefSize(200, 40);
         button.setFont(Font.font("System", FontWeight.BOLD, 14));
@@ -429,6 +542,12 @@ public class MenuController implements Initializable {
         });
     }
 
+    /**
+     * Convertit un objet Color en code hexadécimal RGB.
+     * 
+     * @param color L'objet Color à convertir
+     * @return Une chaîne représentant la couleur au format hexadécimal RGB
+     */
     private String toRGBCode(Color color) {
         return String.format("#%02X%02X%02X",
                 (int) (color.getRed() * 255),
@@ -436,6 +555,12 @@ public class MenuController implements Initializable {
                 (int) (color.getBlue() * 255));
     }
 
+    /**
+     * Démarre l'animation du titre de la page de profil.
+     * L'animation alterne entre différentes couleurs en continu.
+     * 
+     * @param title L'étiquette du titre à animer
+     */
     private void startProfileTitleAnimation(Label title) {
         Timeline titleAnimation = new Timeline(
                 new KeyFrame(Duration.millis(0), new KeyValue(title.textFillProperty(), Color.WHITE)),
@@ -448,6 +573,12 @@ public class MenuController implements Initializable {
         titleAnimation.play();
     }
 
+    /**
+     * Affiche une alerte d'information avec un titre et un message.
+     * 
+     * @param title Le titre de l'alerte
+     * @param message Le message à afficher dans l'alerte
+     */
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(">>> " + title + " <<<");
@@ -456,6 +587,10 @@ public class MenuController implements Initializable {
         alert.showAndWait();
     }
 
+    /**
+     * Arrête toutes les animations en cours, notamment celle du titre.
+     * Cette méthode doit être appelée avant de fermer l'application pour éviter les fuites mémoire.
+     */
     public void stopAnimations() {
         if (titleAnimation != null) {
             titleAnimation.stop();

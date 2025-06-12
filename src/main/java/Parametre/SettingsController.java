@@ -15,19 +15,76 @@ import javafx.util.Duration;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+/**
+ * Contrôleur pour l'écran des paramètres du jeu Bomberman.
+ * <p>
+ * Cette classe gère l'interface utilisateur des paramètres du jeu, notamment l'affichage
+ * des commandes pour chaque joueur et la navigation vers le menu principal. Elle implémente
+ * l'interface Initializable pour configurer les composants de l'interface au chargement.
+ * </p>
+ */
 public class SettingsController implements Initializable {
 
+    /**
+     * Étiquette affichant le titre de la page des paramètres.
+     * Cette étiquette bénéficie d'une animation de changement de couleur.
+     */
     @FXML private Label titleLabel;
+
+    /**
+     * Étiquette pour le titre de la section des contrôles.
+     */
     @FXML private Label controlsTitle;
+
+    /**
+     * Conteneur VBox pour afficher les commandes du joueur 1.
+     */
     @FXML private VBox player1Controls;
+
+    /**
+     * Conteneur VBox pour afficher les commandes du joueur 2.
+     */
     @FXML private VBox player2Controls;
+
+    /**
+     * Conteneur VBox pour afficher les commandes du joueur 3.
+     */
     @FXML private VBox player3Controls;
+
+    /**
+     * Conteneur VBox pour afficher les commandes du joueur 4.
+     */
     @FXML private VBox player4Controls;
+
+    /**
+     * Bouton permettant de retourner au menu principal.
+     * Ce bouton possède des effets visuels lors du survol et du clic.
+     */
     @FXML private Button backButton;
 
+    /**
+     * Référence à l'application principale pour la navigation entre les écrans.
+     */
     private BombermanApplication application;
+
+    /**
+     * Timeline pour l'animation du titre.
+     * Cette animation fait varier la couleur du texte du titre.
+     */
     private Timeline titleAnimation;
 
+    /**
+     * Initialise l'interface utilisateur de l'écran des paramètres.
+     * <p>
+     * Cette méthode est automatiquement appelée après le chargement du fichier FXML.
+     * Elle configure le texte des étiquettes, démarre l'animation du titre,
+     * initialise les informations de contrôle pour chaque joueur et configure
+     * les effets visuels des boutons.
+     * </p>
+     *
+     * @param url L'emplacement utilisé pour résoudre les chemins relatifs des ressources.
+     * @param resourceBundle Les ressources utilisées pour localiser l'interface utilisateur.
+     */
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         // Configuration du texte décoratif
@@ -50,10 +107,26 @@ public class SettingsController implements Initializable {
         setupButtonEffects();
     }
 
+    /**
+     * Définit la référence à l'application principale.
+     * <p>
+     * Cette méthode permet d'établir une connexion avec l'application principale
+     * pour faciliter la navigation entre les différents écrans.
+     * </p>
+     *
+     * @param app L'instance de l'application Bomberman.
+     */
     public void setApplication(BombermanApplication app) {
         this.application = app;
     }
 
+    /**
+     * Démarre l'animation de changement de couleur du titre.
+     * <p>
+     * Cette méthode configure et lance une animation qui fait varier cycliquement
+     * la couleur du texte du titre entre blanc, cyan, blanc et magenta.
+     * </p>
+     */
     private void startTitleAnimation() {
         if (titleLabel != null) {
             // Animation de changement de couleur pour le titre
@@ -69,6 +142,13 @@ public class SettingsController implements Initializable {
         }
     }
 
+    /**
+     * Configure les informations de contrôles pour tous les joueurs.
+     * <p>
+     * Cette méthode initialise les boîtes de contrôles pour chaque joueur
+     * avec leurs commandes spécifiques et une couleur distinctive.
+     * </p>
+     */
     private void setupControlsInfo() {
         // Configuration des informations de contrôles pour chaque joueur
         if (player1Controls != null) {
@@ -85,6 +165,18 @@ public class SettingsController implements Initializable {
         }
     }
 
+    /**
+     * Configure une boîte de contrôles pour un joueur spécifique.
+     * <p>
+     * Cette méthode définit le style et le contenu d'une boîte VBox
+     * pour afficher les informations de contrôle d'un joueur.
+     * </p>
+     *
+     * @param playerBox Le conteneur VBox à configurer.
+     * @param playerName Le nom du joueur à afficher.
+     * @param controls La description textuelle des commandes du joueur.
+     * @param color La couleur à utiliser pour le style du joueur (format hexadécimal).
+     */
     private void setupPlayerControlsBox(VBox playerBox, String playerName, String controls, String color) {
         // Configuration du style et du contenu pour chaque boîte de contrôles
         playerBox.setStyle(
@@ -106,6 +198,13 @@ public class SettingsController implements Initializable {
         }
     }
 
+    /**
+     * Configure les effets visuels pour les boutons de l'interface.
+     * <p>
+     * Cette méthode ajoute des effets de survol et d'animation
+     * au bouton de retour vers le menu principal.
+     * </p>
+     */
     private void setupButtonEffects() {
         if (backButton != null) {
             String originalStyle = backButton.getStyle();
@@ -130,6 +229,13 @@ public class SettingsController implements Initializable {
         }
     }
 
+    /**
+     * Gère le retour au menu principal.
+     * <p>
+     * Cette méthode est appelée lorsque l'utilisateur clique sur le bouton "Retour".
+     * Elle joue une animation de sélection avant de naviguer vers l'écran du menu principal.
+     * </p>
+     */
     @FXML
     private void handleBackToMenu() {
         // Animation de sélection
@@ -160,6 +266,13 @@ public class SettingsController implements Initializable {
         }
     }
 
+    /**
+     * Arrête toutes les animations en cours.
+     * <p>
+     * Cette méthode doit être appelée lors de la fermeture de l'écran des paramètres
+     * pour libérer les ressources et éviter les fuites de mémoire.
+     * </p>
+     */
     public void stopAnimations() {
         if (titleAnimation != null) {
             titleAnimation.stop();

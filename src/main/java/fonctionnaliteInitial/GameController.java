@@ -51,31 +51,88 @@ import java.util.Set;
  * </p>
  */
 
-
 public class GameController {
 
-    // Composants UI
+    /**
+     * Grille de jeu où sont affichés tous les éléments visuels
+     */
     private GridPane gameGrid;
+    /**
+     * Étiquette affichant les informations du joueur 1
+     */
     private Label player1Info;
+    /**
+     * Étiquette affichant les informations du joueur 2
+     */
     private Label player2Info;
+    /**
+     * Étiquette affichant les informations du joueur 3
+     */
     private Label player3Info;
+    /**
+     * Étiquette affichant les informations du joueur 4
+     */
     private Label player4Info;
+    /**
+     * Étiquette affichant l'état actuel du jeu
+     */
     private Label gameStatusLabel;
+    /**
+     * Étiquette affichant le mode de jeu actuel
+     */
     private Label gameModeLabel;
+    /**
+     * Panneau contenant les informations de jeu
+     */
     private VBox gameInfoPanel;
+    /**
+     * Bouton permettant de retourner au menu principal
+     */
     private Button backToMenuButton;
+    /**
+     * Bouton permettant de changer le mode de jeu
+     */
     private Button toggleGameModeButton;
 
-    // Logique de jeu
+    /**
+     * Référence à l'application principale
+     */
     private BombermanApplication application;
+    /**
+     * Carte du jeu contenant la disposition des murs et obstacles
+     */
     private BombermanMap gameMap;
+    /**
+     * Liste des joueurs présents dans la partie
+     */
     private List<JavaFXPlayer> players;
+    /**
+     * Liste des bombes actives sur la carte
+     */
     private List<JavaFXBomb> bombs;
+    /**
+     * Liste des power-ups présents sur la carte
+     */
     private List<PowerUp> powerUps;
+    /**
+     * Ensemble des touches actuellement pressées
+     */
     private Set<KeyCode> pressedKeys;
+    /**
+     * Boucle principale du jeu
+     */
     private AnimationTimer gameLoop;
+    /**
+     * Mode de jeu actuel (LIMITED_BOMBS, INFINITE_BOMBS)
+     */
     private GameState currentState;
-    private GameMode currentGameMode; // Mode de jeu pour les bombes
+    /**
+     * Nombre de joueurs dans la partie actuelle
+     */
+    private GameMode currentGameMode;
+    /**
+     * Correspondance entre joueurs et leurs représentations visuelles
+     */
     private int currentPlayerCount;
 
     // Tracking des nodes pour éviter les traces
@@ -131,13 +188,27 @@ public class GameController {
     }
 
     /**
-     * Définit l'application principale associée à ce contrôleur.
+     * Définit l'application Bomberman pour ce contrôleur et met à jour le mode de jeu actuel.
+     *
+     * @param app L'instance de {@link BombermanApplication} à associer à ce contrôleur.
+     *            Si l'application fournie n'est pas nulle, le mode de jeu sélectionné est récupéré
+     *            et stocké dans la variable {@code currentGameMode}. Un message affichant le nom
+     *            du mode de jeu sélectionné est imprimé dans la console.
+     *
      * <p>
-     * Cette référence permet au contrôleur de communiquer avec l'application
-     * principale pour les changements de scène et autres interactions.
+     * Exemple d'utilisation :
+     * <pre>
+     *     BombermanApplication app = new BombermanApplication();
+     *     GameController controller = new GameController();
+     *     controller.setApplication(app);
+     * </pre>
      * </p>
      *
-     * @param application L'instance de BombermanApplication
+     * <p>
+     * Remarque : Assurez-vous que le paramètre {@code app} est correctement initialisé et qu'il
+     * dispose d'un mode de jeu sélectionné valide avant d'appeler cette méthode, afin d'éviter
+     * d'éventuelles erreurs de type {@code NullPointerException}.
+     * </p>
      */
     public void setApplication(BombermanApplication app) {
         this.application = app;

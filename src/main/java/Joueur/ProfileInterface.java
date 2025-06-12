@@ -21,15 +21,53 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Interface de gestion des profils pour Bomberman
+ * Interface de gestion des profils pour le jeu Bomberman.
+ * Cette classe permet de créer, afficher, sélectionner et supprimer des profils de joueurs.
+ * Elle gère l'interface graphique pour toutes les fonctionnalités liées aux profils.
+ * 
+ * <p>Les fonctionnalités principales incluent :
+ * <ul>
+ *   <li>Affichage de la page principale des profils</li>
+ *   <li>Création de nouveaux profils</li>
+ *   <li>Affichage et gestion des profils existants</li>
+ *   <li>Sélection de profils pour les parties</li>
+ * </ul>
+ * 
+ * <p>Cette classe utilise JavaFX pour l'interface graphique et interagit avec le {@link ProfileManager}
+ * pour la gestion des données des profils.
+ * 
+ * @see Profile
+ * @see ProfileManager
+ * @see BombermanApplication
  */
 public class ProfileInterface {
 
+    /**
+     * Référence à l'application principale Bomberman.
+     */
     private BombermanApplication application;
+    
+    /**
+     * Gestionnaire de profils pour accéder et manipuler les profils.
+     */
     private ProfileManager profileManager;
+    
+    /**
+     * Fenêtre principale de l'application.
+     */
     private Stage primaryStage;
+    
+    /**
+     * Timeline pour l'animation du titre.
+     */
     private Timeline titleAnimation;
 
+    /**
+     * Constructeur de l'interface de gestion des profils.
+     * Initialise les références nécessaires pour gérer les profils.
+     *
+     * @param application référence à l'application principale Bomberman
+     */
     public ProfileInterface(BombermanApplication application) {
         this.application = application;
         this.profileManager = ProfileManager.getInstance();
@@ -37,7 +75,9 @@ public class ProfileInterface {
     }
 
     /**
-     * Affiche la page principale des profils
+     * Affiche la page principale des profils.
+     * Cette page présente les options pour créer un nouveau profil ou utiliser un profil existant.
+     * Elle affiche également le nombre de profils enregistrés.
      */
     public void showProfileMainPage() {
         stopAnimations();
@@ -110,7 +150,9 @@ public class ProfileInterface {
     }
 
     /**
-     * Affiche la page de création de profil
+     * Affiche la page de création de profil.
+     * Cette page permet à l'utilisateur de saisir un prénom, un nom et de choisir une couleur
+     * pour créer un nouveau profil.
      */
     public void showCreateProfilePage() {
         stopAnimations();
@@ -186,7 +228,10 @@ public class ProfileInterface {
     }
 
     /**
-     * Affiche la page des profils existants
+     * Affiche la page des profils existants.
+     * Cette page liste tous les profils enregistrés et permet de les sélectionner ou de les supprimer.
+     * Si aucun profil n'existe, un message d'alerte est affiché et l'utilisateur est redirigé vers
+     * la page principale des profils.
      */
     public void showExistingProfilesPage() {
         stopAnimations();
@@ -252,7 +297,12 @@ public class ProfileInterface {
     }
 
     /**
-     * Crée une boîte d'affichage pour un profil
+     * Crée une boîte d'affichage pour un profil spécifique.
+     * Cette boîte contient les informations du profil (nom, couleur, statistiques) 
+     * et des boutons pour sélectionner ou supprimer le profil.
+     *
+     * @param profile le profil à afficher
+     * @return un conteneur HBox contenant les informations et actions disponibles pour le profil
      */
     private HBox createProfileBox(Profile profile) {
         HBox profileBox = new HBox(20);
@@ -314,7 +364,13 @@ public class ProfileInterface {
     }
 
     /**
-     * Gère la création d'un nouveau profil
+     * Gère la création d'un nouveau profil.
+     * Valide les entrées utilisateur, vérifie si le profil existe déjà,
+     * puis crée et enregistre le nouveau profil.
+     *
+     * @param firstName prénom du joueur
+     * @param lastName nom de famille du joueur
+     * @param color couleur choisie pour le sprite du joueur
      */
     private void handleCreateProfile(String firstName, String lastName, String color) {
         // Validation des champs
@@ -356,6 +412,14 @@ public class ProfileInterface {
 
     // ===== MÉTHODES UTILITAIRES =====
 
+    /**
+     * Crée un bouton avec un style rétro.
+     * Le bouton change légèrement d'apparence au survol de la souris.
+     *
+     * @param text texte à afficher sur le bouton
+     * @param baseColor couleur de base du bouton
+     * @return un bouton stylisé
+     */
     private Button createRetroButton(String text, Color baseColor) {
         Button button = new Button(text);
         button.setPrefSize(300, 60);
@@ -386,6 +450,14 @@ public class ProfileInterface {
         return button;
     }
 
+    /**
+     * Crée un petit bouton avec un style rétro.
+     * Utilisé pour les actions dans les boîtes de profil.
+     *
+     * @param text texte à afficher sur le bouton
+     * @param baseColor couleur de base du bouton
+     * @return un petit bouton stylisé
+     */
     private Button createSmallRetroButton(String text, Color baseColor) {
         Button button = new Button(text);
         button.setPrefSize(120, 35);
@@ -408,6 +480,12 @@ public class ProfileInterface {
         return button;
     }
 
+    /**
+     * Crée un champ de texte avec un style rétro.
+     *
+     * @param promptText texte d'invite à afficher dans le champ
+     * @return un champ de texte stylisé
+     */
     private TextField createRetroTextField(String promptText) {
         TextField field = new TextField();
         field.setPromptText(promptText);
@@ -424,6 +502,12 @@ public class ProfileInterface {
         return field;
     }
 
+    /**
+     * Crée une étiquette avec un style rétro.
+     *
+     * @param text texte de l'étiquette
+     * @return une étiquette stylisée
+     */
     private Label createRetroLabel(String text) {
         Label label = new Label(text);
         label.setFont(Font.font("Monospace", FontWeight.BOLD, 16));
@@ -431,6 +515,11 @@ public class ProfileInterface {
         return label;
     }
 
+    /**
+     * Applique un style rétro à une ComboBox.
+     *
+     * @param comboBox la ComboBox à styliser
+     */
     private void styleRetroComboBox(ComboBox<String> comboBox) {
         comboBox.setPrefHeight(45);
         comboBox.setMaxWidth(350);
@@ -445,6 +534,12 @@ public class ProfileInterface {
         );
     }
 
+    /**
+     * Convertit une couleur JavaFX en code hexadécimal.
+     *
+     * @param color la couleur à convertir
+     * @return une chaîne représentant le code hexadécimal de la couleur
+     */
     private String getColorCode(Color color) {
         return String.format("#%02X%02X%02X",
                 (int) (color.getRed() * 255),
@@ -452,6 +547,12 @@ public class ProfileInterface {
                 (int) (color.getBlue() * 255));
     }
 
+    /**
+     * Démarre l'animation du titre.
+     * L'animation fait cycler la couleur du texte entre blanc, cyan, blanc et magenta.
+     *
+     * @param titleLabel l'étiquette du titre à animer
+     */
     private void startTitleAnimation(Label titleLabel) {
         titleAnimation = new Timeline(
                 new KeyFrame(Duration.millis(0), new KeyValue(titleLabel.textFillProperty(), Color.WHITE)),
@@ -464,12 +565,23 @@ public class ProfileInterface {
         titleAnimation.play();
     }
 
+    /**
+     * Arrête toutes les animations en cours.
+     * Appelée lorsqu'on change de page pour éviter les fuites de mémoire.
+     */
     private void stopAnimations() {
         if (titleAnimation != null) {
             titleAnimation.stop();
         }
     }
 
+    /**
+     * Affiche une boîte de dialogue d'alerte.
+     *
+     * @param title titre de l'alerte
+     * @param message message à afficher
+     * @param type type d'alerte (INFORMATION, WARNING, ERROR, etc.)
+     */
     private void showAlert(String title, String message, Alert.AlertType type) {
         Alert alert = new Alert(type);
         alert.setTitle(">>> " + title + " <<<");
@@ -479,7 +591,14 @@ public class ProfileInterface {
     }
 
     /**
-     * Méthode pour sélectionner des profils lors du lancement d'une partie
+     * Permet de sélectionner un profil pour un joueur lors du lancement d'une partie.
+     * Si aucun profil n'est disponible ou si l'utilisateur choisit les paramètres par défaut,
+     * la méthode retourne null.
+     *
+     * @param playerNumber numéro du joueur (1, 2, etc.)
+     * @param defaultPlayerName nom par défaut du joueur si aucun profil n'est sélectionné
+     * @param defaultColor couleur par défaut du joueur si aucun profil n'est sélectionné
+     * @return le profil sélectionné ou null si aucun profil n'est sélectionné
      */
     public Profile selectProfileForPlayer(int playerNumber, String defaultPlayerName, Color defaultColor) {
         List<Profile> profiles = profileManager.getAllProfiles();
@@ -517,7 +636,10 @@ public class ProfileInterface {
     }
 
     /**
-     * Affiche une boîte de dialogue pour sélectionner un profil - Version corrigée
+     * Affiche une boîte de dialogue pour sélectionner un profil parmi les profils existants.
+     *
+     * @param playerNumber numéro du joueur pour lequel sélectionner un profil
+     * @return le profil sélectionné ou null si aucun profil n'est sélectionné
      */
     private Profile showProfileSelectionDialog(int playerNumber) {
         List<Profile> profiles = profileManager.getAllProfiles();
@@ -552,7 +674,11 @@ public class ProfileInterface {
         return null;
     }
 
-    // Getters
+    /**
+     * Retourne le gestionnaire de profils utilisé par cette interface.
+     *
+     * @return le gestionnaire de profils
+     */
     public ProfileManager getProfileManager() {
         return profileManager;
     }
